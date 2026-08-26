@@ -140,6 +140,17 @@ body {
 	margin: auto;
 }
 
+/*
+ * Snapchat's tint lives here, not in tokens.css: that file is a verbatim copy
+ * shared with the WordPress plugin, whose icon set stops at 15 platforms — a
+ * re-copy from the plugin would silently drop a rule added there. The alpha is
+ * 0.25 rather than the other platforms' 0.1 (matching the app's PlatformIcon)
+ * because Snapchat yellow all but disappears at 0.1.
+ */
+.bp-platform-icon[data-platform='snapchat'] {
+	background: rgba(255, 252, 0, 0.25);
+}
+
 .bp-key-mask {
 	font-size: 13px;
 	padding: 4px 8px;

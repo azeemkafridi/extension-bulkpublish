@@ -41,14 +41,21 @@ A three-way setting, not a checkbox, because the API distinguishes them: **Accou
 
 | Platform | Limit |
 |---|---|
+| Snapchat | 160 |
 | X | 280 |
 | Bluesky | 300 |
 | Threads / Mastodon / Pinterest | 500 |
 | Google Business | 1,500 |
+| Discord | 2,000 |
 | Instagram / TikTok | 2,200 |
 | LinkedIn | 3,000 |
+| Telegram | 4,096 |
 | YouTube | 5,000 |
+| Tumblr | 32,768 |
+| Reddit | 40,000 |
 | Facebook | 63,206 |
+
+Snapchat is the tightest of the set — its caption is only ever used for a Spotlight description, and stories take no caption at all.
 
 The composer measures the caption *as it will be sent* — `%%title%%` / `%%link%%` expand to the current page's title and URL before counting.
 

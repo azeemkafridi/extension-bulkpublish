@@ -1,9 +1,9 @@
 /**
  * Platform brand icon in a tinted circle — ported from the WP plugin.
- * The SVGs ship in public/platforms/; anything without one (snapchat has no
- * bundled icon yet) degrades to the platform's initial rather than a broken
- * <img>. We deliberately never render channel.profileImage — platform CDN
- * avatars sit behind short-lived signed URLs that 403 later.
+ * The SVGs ship in public/platforms/, one per platform in the API's enum;
+ * anything unrecognised degrades to the platform's initial rather than a
+ * broken <img>. We deliberately never render channel.profileImage — platform
+ * CDN avatars sit behind short-lived signed URLs that 403 later.
  */
 import { platformLabel } from '@/lib/constants.js';
 
@@ -17,6 +17,7 @@ const ICONS = [
 	'mastodon',
 	'pinterest',
 	'reddit',
+	'snapchat',
 	'telegram',
 	'threads',
 	'tiktok',
