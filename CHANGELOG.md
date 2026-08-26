@@ -1,0 +1,16 @@
+# Changelog
+
+## 0.1.0 (2026-08-27)
+
+Initial release — the BulkPublish WordPress plugin's composer, rebuilt as a cross-browser extension with WXT (Chrome MV3 and Firefox from one codebase).
+
+- **Popup composer** ported from the WordPress plugin (v1.5.0): channel pills + popover selector with channel sets, per-platform caption overrides, live character limits measured against the resolved caption, scheduling with the browser's timezone, and the "Require approval" flow. Publish-now keeps the plugin's two-step shape — create as draft, then publish — skipping the publish call when the post comes back held for approval, and carrying the created post's id through a failed publish so retry never duplicates the draft.
+- **Architecture shift from the plugin:** WordPress kept the API key on the server behind a REST proxy; an extension has no server, so the key lives in `storage.local` (never `storage.sync` — a synced key would replicate to every signed-in browser) and the popup calls `app.bulkpublish.com` directly. Host permissions make extension pages CORS-exempt, so no background message-shuttling layer exists at all — the background script owns only the context menus.
+- **Context-menu sharing** on pages, selections, and images. The click stores a prefill in `storage.session` (the right lifetime for "the thing you just right-clicked") and opens the popup; where `action.openPopup()` isn't available it falls back to a small standalone window.
+- **Page prefill and tokens.** The caption prefills from the page title/URL, or the selection when there is one. Of the WordPress plugin's server-resolved token set, only `%%title%%` and `%%link%%` survive — they're the only ones with a meaning outside a WP post — and they resolve against the current page at submit time.
+- **Media** uploads on selection: simple `POST /api/media` up to 100 MB, the multipart create → presigned parts → complete flow (10 MB parts, abort on failure, per-part progress) above it. "Grab images from this page" collects the page's ≥200px images and fetches the chosen one *from inside the page* — the page can read its own images where the extension's origin could not.
+- **Recent tab**: latest 20 posts with approve/reject (with reason), retry, delete, and expandable per-channel status; status polling every 4s while anything is pending or publishing.
+- **Costs and quotas**: the plugin's pre-publish table, with the X dcent math extracted to a pure module. Server price sheet wins over the built-in fallbacks.
+- **Link tracking is a three-option control** (Account default / On / Off) because omitting `linkTrackingOverride` inherits the workspace setting — an untouched control must not send `false`.
+- Not surfaced: the WordPress plugin's auto-share hooks, automation rules, and WP content dashboard — all of them are WordPress-side concepts with no browser equivalent.
+- Pure logic (`lib/`: API client, post-body assembly, cost math, multipart orchestration, prefill) is browser-global-free and covered by 34 `node:test` cases.

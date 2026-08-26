@@ -1,0 +1,928 @@
+/**
+ * BulkPublish design tokens + components, ported from the app's global.css.
+ * Everything is scoped to .bulkpublish-root so it never leaks into wp-admin,
+ * and wp-admin's global styles are neutralized inside our root.
+ */
+
+.bulkpublish-root {
+	/* Typography */
+	--bp-font-display: 'Inter', system-ui, -apple-system, sans-serif;
+	--bp-font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+	--bp-text-xs: 0.6875rem;   /* 11px */
+	--bp-text-sm: 0.8125rem;   /* 13px */
+	--bp-text-base: 0.875rem;  /* 14px */
+	--bp-text-md: 0.9375rem;   /* 15px */
+	--bp-text-lg: 1.125rem;    /* 18px */
+	--bp-text-xl: 1.375rem;    /* 22px */
+	--bp-text-2xl: 1.75rem;    /* 28px */
+
+	--bp-weight-normal: 400;
+	--bp-weight-medium: 500;
+	--bp-weight-semibold: 600;
+	--bp-weight-bold: 700;
+
+	--bp-leading-tight: 1.2;
+	--bp-leading-normal: 1.5;
+	--bp-leading-relaxed: 1.65;
+
+	/* Stone scale */
+	--bp-stone-50: #FAFAFA;
+	--bp-stone-100: #F5F5F4;
+	--bp-stone-150: #EFEFED;
+	--bp-stone-200: #E7E5E4;
+	--bp-stone-300: #D6D3D1;
+	--bp-stone-400: #A8A29E;
+	--bp-stone-500: #78716C;
+	--bp-stone-600: #57534E;
+	--bp-stone-700: #3D3830;
+	--bp-stone-800: #222222;
+	--bp-stone-900: #1A1A1A;
+
+	/* Accent — warm orange */
+	--bp-accent-50: #FFF4E6;
+	--bp-accent-100: #FFE4C4;
+	--bp-accent-200: #FFCE96;
+	--bp-accent-300: #FFB564;
+	--bp-accent-400: #FF9A36;
+	--bp-accent-500: #FA8112;
+	--bp-accent-600: #E06D00;
+	--bp-accent-700: #B85A00;
+	--bp-accent-900: #663300;
+
+	/* Semantic */
+	--bp-success: #4ADE80;
+	--bp-success-bg: #F0FDF4;
+	--bp-success-text: #166534;
+	--bp-error: #ff0000;
+	--bp-error-bg: #FEF7F7;
+	--bp-error-text: #B91C1C;
+	--bp-warning: #FBBF24;
+	--bp-warning-bg: #FFFBEB;
+	--bp-warning-text: #A16207;
+	--bp-info: #60A5FA;
+	--bp-info-bg: #EFF6FF;
+	--bp-info-text: #1D4ED8;
+	--bp-scheduled: #6366F1;
+	--bp-scheduled-bg: #F8F8FC;
+	--bp-scheduled-text: #4338CA;
+
+	/* WordPress control border — core's own #8c8f94, so our fields sit in
+	 * wp-admin without looking foreign. */
+	--bp-wp-border: #8c8f94;
+
+	/* Surfaces */
+	--bp-surface-main: #FFFFFF;
+	--bp-surface-card: #FAFAFA;
+	--bp-surface-body: #F7F7F7;
+
+	/* Radii */
+	--bp-radius-sm: 6px;
+	--bp-radius-md: 8px;
+	--bp-radius-lg: 12px;
+	--bp-radius-xl: 16px;
+	--bp-radius-pill: 999px;
+
+	/* Spacing.
+	 * Three values run every screen:
+	 *   --bp-gutter  space around and between the grey sections
+	 *   --bp-pad     inside a section (uniform, so nested radii stay concentric)
+	 *   --bp-stack   between fields within a section
+	 * Everything text-level therefore starts at gutter + pad from the white
+	 * container's edge, on every page — headings included.
+	 */
+	--bp-gutter: 12px;
+	--bp-pad: 20px;
+	--bp-stack: 16px;
+
+	/* Control heights */
+	--bp-control-sm: 32px;
+	--bp-control-md: 40px;
+	--bp-control-lg: 46px;
+
+	/* Transitions */
+	--bp-transition-fast: 120ms ease;
+	--bp-transition-base: 180ms ease;
+
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-base);
+	font-weight: var(--bp-weight-normal);
+	line-height: var(--bp-leading-normal);
+	color: var(--bp-stone-800);
+	max-width: 960px;
+}
+
+.bulkpublish-root *,
+.bulkpublish-root *::before,
+.bulkpublish-root *::after {
+	box-sizing: border-box;
+}
+
+/* Headings — override wp-admin defaults inside our root. */
+.bulkpublish-root h1,
+.bulkpublish-root h2,
+.bulkpublish-root h3,
+.bulkpublish-root h4 {
+	font-family: var(--bp-font-display);
+	font-weight: var(--bp-weight-semibold);
+	line-height: var(--bp-leading-tight);
+	color: var(--bp-stone-900);
+	margin: 0;
+	padding: 0;
+}
+.bulkpublish-root h1 { font-size: var(--bp-text-2xl); }
+.bulkpublish-root h2 { font-size: var(--bp-text-xl); }
+.bulkpublish-root h3 { font-size: var(--bp-text-lg); }
+.bulkpublish-root p { margin: 0; line-height: var(--bp-leading-relaxed); }
+
+.bulkpublish-root :focus-visible {
+	outline: 2px solid var(--bp-accent-500);
+	outline-offset: 2px;
+	border-radius: var(--bp-radius-sm);
+}
+
+/* ---- Header ----
+ * Heading left, mark right: the page title is what someone reads first, and the
+ * logo is an identifier, not a lead-in.
+ */
+.bp-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	margin: 8px 0 20px;
+}
+.bp-logo { height: 30px; width: auto; }
+.bp-title { font-size: var(--bp-text-2xl); }
+.bp-subtitle { color: var(--bp-stone-500); font-size: var(--bp-text-sm); margin-top: 2px; }
+
+/* ---- Layout helpers ---- */
+.bp-stack { display: flex; flex-direction: column; gap: var(--bp-stack); }
+.bp-row { display: flex; align-items: center; gap: 12px; }
+.bp-row-between { justify-content: space-between; }
+.bp-muted { color: var(--bp-stone-500); font-size: var(--bp-text-sm); }
+
+/* ---- Card ----
+ * The app separates surfaces by background tint, never by borders: every
+ * --border-* token in webapp/src/styles/global.css is `transparent` and every
+ * --shadow-* is `none`. A card is an off-white slab on a lighter page; inputs
+ * are pure white on top of it. Borders appear only as deliberate exceptions
+ * (the channel popover), which is why they read as "not our design" elsewhere.
+ */
+.bp-card {
+	background: var(--bp-surface-card);
+	border: none;
+	border-radius: var(--bp-radius-lg);
+	padding: var(--bp-pad);
+	margin-bottom: var(--bp-gutter);
+}
+
+/* ---- Buttons ---- */
+.bp-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: var(--bp-control-md);
+	padding: 0 20px;
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-medium);
+	border: none;
+	border-radius: var(--bp-radius-pill);
+	cursor: pointer;
+	white-space: nowrap;
+	line-height: 1;
+	text-decoration: none;
+	transition: all var(--bp-transition-base);
+}
+.bp-btn-primary { background: var(--bp-stone-800); color: #fff; }
+.bp-btn-primary:hover { background: var(--bp-stone-700); transform: translateY(-1px); color: #fff; }
+.bp-btn-primary:active { transform: translateY(0); }
+.bp-btn-secondary { background: var(--bp-surface-main); color: var(--bp-stone-700); }
+.bp-btn-secondary:hover { background: var(--bp-stone-50); }
+.bp-btn-ghost { background: transparent; color: var(--bp-stone-500); }
+.bp-btn-ghost:hover { background: var(--bp-stone-100); color: var(--bp-stone-700); }
+.bp-btn-danger { background: #EF4444; color: #fff; }
+.bp-btn-danger:hover { background: #DC2626; color: #fff; }
+/* Size changes the box, never the type size: a row mixing sm and md buttons
+ * with 11px and 13px labels was the main "buttons look inconsistent" tell. */
+.bp-btn-sm { height: var(--bp-control-sm); padding: 0 14px; }
+.bp-btn-lg { height: var(--bp-control-lg); padding: 0 28px; }
+.bp-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ---- Inputs ---- */
+.bp-input,
+.bp-textarea {
+	width: 100%;
+	height: 42px;
+	padding: 0 16px;
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-base);
+	color: var(--bp-stone-800);
+	background: var(--bp-surface-main);
+	/* The app's fields are borderless because they sit on tinted panels. In
+	 * wp-admin they sit on white, where borderless means invisible — so form
+	 * controls keep a hairline in WordPress's own control-border colour
+	 * (#8c8f94, the same one core uses for inputs) and everything else stays
+	 * border-free. */
+	border: 1px solid var(--bp-wp-border);
+	border-radius: var(--bp-radius-xl);
+	transition: box-shadow var(--bp-transition-base), border-color var(--bp-transition-base);
+}
+.bp-textarea {
+	height: auto;
+	min-height: 110px;
+	padding: 12px 16px;
+	resize: vertical;
+	line-height: var(--bp-leading-normal);
+}
+.bp-input:focus,
+.bp-textarea:focus {
+	outline: none;
+	border-color: var(--bp-accent-400);
+	box-shadow: 0 0 0 3px var(--bp-accent-50);
+}
+.bp-input::placeholder,
+.bp-textarea::placeholder { color: var(--bp-stone-400); }
+.bp-input.bp-has-error,
+.bp-textarea.bp-has-error { border-color: var(--bp-error); box-shadow: 0 0 0 3px var(--bp-error-bg); }
+
+.bp-label {
+	display: block;
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-medium);
+	color: var(--bp-stone-700);
+	margin-bottom: 6px;
+}
+.bp-hint { display: block; font-size: var(--bp-text-xs); color: var(--bp-stone-400); margin-top: 6px; }
+.bp-hint a { color: var(--bp-accent-600); }
+.bp-error-text { display: block; font-size: var(--bp-text-xs); color: var(--bp-error-text); margin-top: 6px; }
+
+.bp-details summary { cursor: pointer; font-size: var(--bp-text-sm); color: var(--bp-stone-600); font-weight: var(--bp-weight-medium); }
+
+/* ---- Caption tokens ("recipes") ---- */
+.bp-tokens { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.bp-tokens-hint { font-size: var(--bp-text-xs); color: var(--bp-stone-400); }
+.bp-token {
+	padding: 3px 10px;
+	border: none;
+	border-radius: var(--bp-radius-pill);
+	background: var(--bp-stone-100);
+	color: var(--bp-stone-600);
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-medium);
+	cursor: grab;
+	transition: all var(--bp-transition-fast);
+}
+.bp-token:hover { background: var(--bp-accent-50); color: var(--bp-accent-700); }
+.bp-token:active { cursor: grabbing; }
+.bp-token-preview {
+	margin-top: 8px;
+	padding: 10px 12px;
+	border-radius: var(--bp-radius-md);
+	background: var(--bp-stone-100);
+	font-size: var(--bp-text-sm);
+	color: var(--bp-stone-700);
+	line-height: var(--bp-leading-normal);
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+.bp-token-preview-title {
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--bp-stone-400);
+	margin-bottom: 4px;
+}
+
+/* ---- Badges ---- */
+.bp-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 22px;
+	padding: 0 10px;
+	border-radius: var(--bp-radius-pill);
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-medium);
+	line-height: 1;
+	white-space: nowrap;
+}
+.bp-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+.bp-badge-success { background: var(--bp-success-bg); color: var(--bp-success-text); }
+.bp-badge-success .bp-badge-dot { background: var(--bp-success); }
+.bp-badge-error { background: var(--bp-error-bg); color: var(--bp-error-text); }
+.bp-badge-error .bp-badge-dot { background: var(--bp-error); }
+.bp-badge-warning { background: var(--bp-warning-bg); color: var(--bp-warning-text); }
+.bp-badge-warning .bp-badge-dot { background: var(--bp-warning); }
+.bp-badge-info { background: var(--bp-info-bg); color: var(--bp-info-text); }
+.bp-badge-info .bp-badge-dot { background: var(--bp-info); }
+.bp-badge-scheduled { background: var(--bp-scheduled-bg); color: var(--bp-scheduled-text); }
+.bp-badge-scheduled .bp-badge-dot { background: var(--bp-scheduled); }
+.bp-badge-neutral { background: var(--bp-stone-200); color: var(--bp-stone-700); }
+.bp-badge-neutral .bp-badge-dot { background: var(--bp-stone-500); }
+
+/* ---- Channel chips ----
+ * Padding is asymmetric on purpose, matching the app's selectedChip
+ * (ChannelSelector.tsx): 4px on the icon side, 12px on the text side. A round
+ * 22px mark needs only its own inset; padding it like a text chip is what made
+ * these look crowded on the left and loose on the right.
+ */
+.bp-chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.bp-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 12px 4px 4px;
+	border-radius: var(--bp-radius-pill);
+	border: none;
+	background: var(--bp-stone-100);
+	font-size: var(--bp-text-sm);
+	color: var(--bp-stone-700);
+	cursor: pointer;
+	transition: all var(--bp-transition-fast);
+}
+.bp-chip:hover { background: var(--bp-stone-150); }
+.bp-chip.is-selected { background: var(--bp-accent-600); color: #fff; }
+.bp-chip.is-selected:hover { background: var(--bp-accent-700); }
+.bp-chip.is-selected .bp-muted { color: rgba(255, 255, 255, 0.75); }
+/* Text-only chips (channel sets, post types) have no leading mark, so they get
+ * even padding — the 4px inset exists only to seat a 22px circle. */
+.bp-chip-text { padding: 6px 12px; gap: 8px; }
+/* Read-only listing (Settings), not a control. */
+.bp-chip-static { cursor: default; }
+.bp-chip-static:hover { background: var(--bp-stone-100); }
+
+/* ---- Checkbox chip (post types) ---- */
+.bp-checkchip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px 6px 8px;
+	border-radius: var(--bp-radius-pill);
+	background: var(--bp-stone-100);
+	font-size: var(--bp-text-sm);
+	color: var(--bp-stone-700);
+	cursor: pointer;
+	transition: all var(--bp-transition-fast);
+}
+.bp-checkchip:hover { background: var(--bp-stone-150); }
+.bp-checkchip input { position: absolute; opacity: 0; width: 0; height: 0; }
+.bp-checkchip-box {
+	width: 20px; height: 20px; border-radius: var(--bp-radius-sm);
+	display: flex; align-items: center; justify-content: center;
+	background: var(--bp-surface-main); color: transparent;
+	transition: all var(--bp-transition-fast); flex-shrink: 0;
+}
+.bp-checkchip:has(input:checked) { background: var(--bp-accent-600); color: #fff; }
+/* On the solid chip the tick inverts — white box, orange check — so it stays
+ * legible instead of orange-on-orange. */
+.bp-checkchip input:checked + .bp-checkchip-box { background: #fff; color: var(--bp-accent-600); }
+
+/* ---- Channel selector (pills + popover) ----
+ * Port of webapp/src/components/compose/ChannelSelector.tsx. Selected channels
+ * are removable pills; everything else lives behind a dropdown, so 24 channels
+ * cost one line instead of a wall of toggles — which is the difference between
+ * usable and unusable in the ~280px block-editor sidebar.
+ */
+.bp-cs { position: relative; }
+.bp-cs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bp-cs-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px 4px 4px;
+	border-radius: var(--bp-radius-pill);
+	border: none;
+	background: var(--bp-stone-100);
+	font-size: var(--bp-text-sm);
+	color: var(--bp-stone-700);
+}
+.bp-cs-pill-name { font-weight: var(--bp-weight-medium); }
+.bp-cs-pill-remove {
+	display: flex; align-items: center; justify-content: center;
+	width: 18px; height: 18px; border-radius: 50%;
+	border: none; background: transparent; color: var(--bp-stone-400);
+	cursor: pointer; padding: 0; transition: all var(--bp-transition-fast);
+}
+.bp-cs-pill-remove:hover { background: var(--bp-stone-200); color: var(--bp-stone-700); }
+.bp-cs-pill-warn { width: 6px; height: 6px; border-radius: 50%; background: var(--bp-warning); flex-shrink: 0; }
+
+.bp-cs-add {
+	display: inline-flex; align-items: center; gap: 4px;
+	padding: 6px 10px;
+	border-radius: var(--bp-radius-pill);
+	border: none; background: transparent;
+	color: var(--bp-stone-500);
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-sm); font-weight: var(--bp-weight-medium);
+	cursor: pointer; transition: all var(--bp-transition-fast);
+}
+.bp-cs-add:hover { background: var(--bp-stone-100); color: var(--bp-stone-700); }
+
+/* The popover is the app's one sanctioned bordered surface. Concentric radii:
+ * outer 12px − 4px uniform list padding = 8px rows. */
+.bp-cs-pop {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	width: 320px;
+	max-width: 100%;
+	background: var(--bp-surface-main);
+	border: 1px solid var(--bp-stone-200);
+	border-radius: var(--bp-radius-lg);
+	box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+	z-index: 100;
+}
+.bp-cs-head {
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 12px 16px;
+}
+.bp-cs-head-title { font-size: var(--bp-text-sm); font-weight: var(--bp-weight-semibold); color: var(--bp-stone-700); }
+.bp-cs-head-count { font-size: var(--bp-text-xs); color: var(--bp-stone-400); }
+.bp-cs-sets { padding: 0 8px 8px; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--bp-stone-150); }
+.bp-cs-sets-title {
+	font-size: var(--bp-text-xs); font-weight: var(--bp-weight-semibold);
+	letter-spacing: 0.04em; text-transform: uppercase; color: var(--bp-stone-400);
+	padding: 4px 8px;
+}
+.bp-cs-set {
+	display: flex; align-items: center; justify-content: space-between;
+	width: 100%; padding: 8px; border: none; background: transparent;
+	border-radius: var(--bp-radius-md);
+	font-family: var(--bp-font-body); font-size: var(--bp-text-sm); color: var(--bp-stone-700);
+	cursor: pointer; text-align: left;
+}
+.bp-cs-set:hover { background: var(--bp-stone-50); }
+.bp-cs-list { max-height: 300px; overflow-y: auto; padding: 4px; }
+.bp-cs-item {
+	display: flex; align-items: center; justify-content: space-between;
+	width: 100%; padding: 12px; border: none; background: transparent;
+	border-radius: 8px; cursor: pointer; text-align: left;
+	transition: background var(--bp-transition-fast);
+}
+.bp-cs-item:hover { background: var(--bp-stone-50); }
+.bp-cs-item-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bp-cs-item-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.bp-cs-item-name {
+	font-size: var(--bp-text-sm); font-weight: var(--bp-weight-medium); color: var(--bp-stone-800);
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bp-cs-item-sub { font-size: var(--bp-text-xs); color: var(--bp-stone-400); }
+.bp-cs-check {
+	display: flex; align-items: center; justify-content: center;
+	width: 20px; height: 20px; border-radius: var(--bp-radius-sm);
+	background: transparent; color: transparent; flex-shrink: 0;
+	transition: all var(--bp-transition-fast);
+}
+.bp-cs-check[data-on="true"] { background: var(--bp-accent-600); color: #fff; }
+.bp-cs-foot {
+	display: flex; align-items: center; gap: 8px;
+	padding: 11px 16px;
+	border-top: 1px solid var(--bp-stone-200);
+	border-radius: 0 0 var(--bp-radius-lg) var(--bp-radius-lg);
+	color: var(--bp-accent-600);
+	font-size: var(--bp-text-sm); font-weight: var(--bp-weight-semibold);
+	text-decoration: none;
+}
+.bp-cs-foot:hover { background: var(--bp-stone-50); color: var(--bp-accent-700); }
+.bp-chip-platform { font-weight: var(--bp-weight-medium); text-transform: capitalize; }
+
+/* ---- Platform mark ----
+ * The app's PlatformIcon (webapp/src/components/channels/PlatformIcon.tsx): a
+ * tinted circle holding the bundled brand SVG. Deliberately NOT the account's
+ * remote avatar — those are signed, short-lived CDN URLs (Meta, TikTok) that
+ * expire and 403 from a wp-admin origin, which is what left every chip broken.
+ * Bundled icons render offline, identically, forever.
+ */
+.bp-platform-icon {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	background: rgba(0, 0, 0, 0.05);
+}
+.bp-platform-icon img { display: block; width: 14px; height: 14px; }
+.bp-platform-icon-md { width: 30px; height: 30px; }
+.bp-platform-icon-md img { width: 18px; height: 18px; }
+
+.bp-platform-icon[data-platform="facebook"]  { background: rgba(24, 119, 242, 0.1); }
+.bp-platform-icon[data-platform="instagram"] { background: rgba(228, 64, 95, 0.1); }
+.bp-platform-icon[data-platform="x"]         { background: rgba(0, 0, 0, 0.06); }
+.bp-platform-icon[data-platform="tiktok"]    { background: rgba(0, 0, 0, 0.06); }
+.bp-platform-icon[data-platform="youtube"]   { background: rgba(255, 0, 0, 0.08); }
+.bp-platform-icon[data-platform="threads"]   { background: rgba(0, 0, 0, 0.06); }
+.bp-platform-icon[data-platform="bluesky"]   { background: rgba(0, 133, 255, 0.1); }
+.bp-platform-icon[data-platform="pinterest"] { background: rgba(230, 0, 35, 0.08); }
+.bp-platform-icon[data-platform="gmb"]       { background: rgba(66, 133, 244, 0.1); }
+.bp-platform-icon[data-platform="linkedin"]  { background: rgba(10, 102, 194, 0.1); }
+.bp-platform-icon[data-platform="mastodon"]  { background: rgba(99, 100, 255, 0.1); }
+.bp-platform-icon[data-platform="reddit"]    { background: rgba(255, 69, 0, 0.1); }
+.bp-platform-icon[data-platform="discord"]   { background: rgba(88, 101, 242, 0.1); }
+.bp-platform-icon[data-platform="telegram"]  { background: rgba(38, 165, 228, 0.1); }
+.bp-platform-icon[data-platform="tumblr"]    { background: rgba(0, 25, 53, 0.08); }
+
+/* ---- Inline key ---- */
+.bp-key {
+	font-family: 'DM Mono', 'SF Mono', monospace;
+	font-size: var(--bp-text-sm);
+	background: var(--bp-stone-100);
+	padding: 3px 8px;
+	border-radius: var(--bp-radius-sm);
+	color: var(--bp-stone-600);
+}
+
+/* ---- Alerts ---- */
+.bp-alert {
+	border-radius: var(--bp-radius-lg);
+	padding: 12px 16px;
+	font-size: var(--bp-text-sm);
+	margin-bottom: 16px;
+}
+.bp-alert-success { background: var(--bp-success-bg); color: var(--bp-success-text); }
+.bp-alert-error { background: var(--bp-error-bg); color: var(--bp-error-text); }
+.bp-alert-warning { background: var(--bp-warning-bg); color: var(--bp-warning-text); }
+.bp-alert-info { background: var(--bp-info-bg); color: var(--bp-info-text); }
+
+/* ---- Empty / loading ---- */
+.bp-empty { text-align: center; padding: 40px 24px; }
+.bp-empty h3 { margin-bottom: 8px; }
+.bp-empty p { margin-bottom: 16px; }
+.bp-loading { display: flex; align-items: center; gap: 10px; color: var(--bp-stone-500); padding: 24px 0; font-size: var(--bp-text-sm); }
+.bp-spinner {
+	width: 16px; height: 16px;
+	border: 2px solid var(--bp-stone-200);
+	border-top-color: var(--bp-accent-500);
+	border-radius: 50%;
+	animation: bp-spin 0.7s linear infinite;
+}
+@keyframes bp-spin { to { transform: rotate(360deg); } }
+
+/* ---- Composer ---- */
+.bp-composer { display: flex; flex-direction: column; gap: 16px; }
+.bp-field { display: flex; flex-direction: column; }
+.bp-charcount { font-size: var(--bp-text-xs); color: var(--bp-stone-400); }
+.bp-charcount.is-over { color: var(--bp-error-text); font-weight: var(--bp-weight-medium); }
+.bp-linkbtn {
+	background: none; border: none; padding: 6px 0 0;
+	color: var(--bp-accent-600); cursor: pointer; font-size: var(--bp-text-xs); text-align: left;
+}
+.bp-link { color: var(--bp-accent-600); text-decoration: none; font-size: var(--bp-text-xs); }
+.bp-link:hover { text-decoration: underline; }
+
+/* ---- Toggle switch ---- */
+.bp-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.bp-toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.bp-toggle-track {
+	width: 34px; height: 20px; border-radius: var(--bp-radius-pill);
+	background: var(--bp-stone-300); position: relative; flex-shrink: 0;
+	transition: background var(--bp-transition-base);
+}
+.bp-toggle-track[data-on="true"] { background: var(--bp-accent-500); }
+.bp-toggle-thumb {
+	position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+	border-radius: 50%; background: #fff; transition: transform var(--bp-transition-base);
+}
+.bp-toggle-track[data-on="true"] .bp-toggle-thumb { transform: translateX(14px); }
+.bp-toggle-label { font-size: var(--bp-text-sm); color: var(--bp-stone-700); line-height: 1.35; }
+
+/* ---- Media ----
+ * Tile size and gap match the app's MediaUploader thumbnails (96px, radius-md,
+ * 10px gap). The add tile is a tinted well rather than a dashed outline — the
+ * app has no dashed borders outside the library dialog's upload strip.
+ */
+.bp-media-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.bp-media-item {
+	position: relative; width: 96px; height: 96px; overflow: hidden;
+	border: none; border-radius: var(--bp-radius-md); background: var(--bp-stone-100);
+}
+.bp-media-item img { width: 100%; height: 100%; object-fit: cover; }
+.bp-media-video {
+	width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+	background: var(--bp-stone-100); color: var(--bp-stone-500); font-size: var(--bp-text-xs);
+}
+.bp-media-remove {
+	position: absolute; top: 4px; right: 4px; width: 20px; height: 20px;
+	border: none; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff;
+	cursor: pointer; line-height: 1; font-size: 13px; padding: 0;
+}
+.bp-media-add {
+	display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+	width: 96px; height: 96px; border: none;
+	border-radius: var(--bp-radius-md); background: var(--bp-stone-100);
+	color: var(--bp-stone-500); cursor: pointer; font-size: var(--bp-text-xs);
+	font-family: var(--bp-font-body); transition: all var(--bp-transition-base);
+}
+.bp-media-add:hover { background: var(--bp-accent-50); color: var(--bp-accent-600); }
+
+/* Featured-image summary (block/classic editor). The post already has a media
+ * field — WordPress's own Featured image panel — so the composer mirrors it
+ * instead of offering a second, silently diverging one. */
+.bp-media-linked {
+	display: flex; align-items: center; gap: 10px;
+	padding: 8px; border-radius: var(--bp-radius-lg); background: var(--bp-stone-100);
+}
+.bp-media-linked-thumb {
+	width: 44px; height: 44px; flex-shrink: 0; overflow: hidden;
+	border-radius: 4px; /* 12px container − 8px uniform padding */
+	background: var(--bp-stone-200);
+}
+.bp-media-linked-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bp-media-linked-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.bp-media-linked-title { font-size: var(--bp-text-sm); font-weight: var(--bp-weight-medium); color: var(--bp-stone-800); }
+.bp-media-linked-sub { font-size: var(--bp-text-xs); color: var(--bp-stone-400); }
+
+/* ---- Status ---- */
+.bp-status { display: flex; flex-direction: column; gap: 8px; }
+.bp-status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Cost & quota table ---- */
+.bp-cost {
+	background: var(--bp-surface-card);
+	border: none;
+	border-radius: var(--bp-radius-lg);
+	padding: 12px 16px;
+}
+.bp-cost-title {
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-semibold);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--bp-stone-500);
+	margin-bottom: 8px;
+}
+.bp-cost-table { width: 100%; border-collapse: collapse; font-size: var(--bp-text-sm); }
+.bp-cost-table td { padding: 4px 0; color: var(--bp-stone-700); vertical-align: top; }
+.bp-cost-table td:last-child { text-align: right; }
+.bp-cost-table tr.bp-cost-sep td { border-top: 1px solid var(--bp-stone-150); padding-top: 8px; }
+.bp-cost-flag {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 8px;
+	border-radius: var(--bp-radius-pill);
+	background: var(--bp-warning-bg);
+	color: var(--bp-warning-text);
+	font-size: var(--bp-text-xs);
+	cursor: help;
+}
+
+/* ---- Chip fallback mark ---- */
+.bp-chip-mark {
+	width: 20px; height: 20px; border-radius: 50%; background: var(--bp-stone-200);
+	display: flex; align-items: center; justify-content: center;
+	font-size: 11px; font-weight: var(--bp-weight-semibold); color: var(--bp-stone-600);
+}
+
+/* ---- Page shell ----
+ * wp-admin's page background is grey, so the plugin's screens sit in one white
+ * slab with the heading inside it, rather than floating loose cards on grey.
+ * Concentric radii, per the app's rule (inner = outer − uniform padding):
+ * shell 20px − 8px padding = 12px sections.
+ */
+/* The shell's padding, the gaps between sections and the sections' own padding
+ * are the only spacing decisions on a page; 24 − 12 = 12 keeps the section
+ * corners concentric inside the shell.
+ */
+.bp-shell {
+	background: var(--bp-surface-main);
+	border-radius: 24px;
+	padding: var(--bp-gutter);
+	margin-top: var(--bp-gutter);
+}
+/* Heading text starts on the same line as every section's text below it. */
+/* --bp-gutter positions the containers; anything that is content — headings,
+ * tabs, the text inside a section — sits a further --bp-pad in, so every line
+ * of text on the page shares one left edge. */
+.bp-shell .bp-header { margin: 0; padding: var(--bp-pad); }
+.bp-shell .bp-card { border-radius: var(--bp-radius-lg); }
+.bp-shell .bp-card:last-child { margin-bottom: 0; }
+.bp-shell .bp-alert { padding: var(--bp-pad); margin-bottom: var(--bp-gutter); }
+.bp-shell > .bp-app-root { padding: 0; }
+.bp-shell > .bp-app-root > .bp-stack { gap: var(--bp-gutter); }
+
+/* The standalone composer is a section like any other, rather than fields
+ * floating on the white shell — that mismatch was the biggest offender. */
+.bp-shell > .bp-app-root > .bp-composer {
+	background: var(--bp-surface-card);
+	border-radius: var(--bp-radius-lg);
+	padding: var(--bp-pad);
+	gap: var(--bp-stack);
+}
+
+/* ---- Tabs ---- */
+/* Tabs left, the view's own filters right, on one line — the same pill language
+ * as the filters, so the bar reads as one set of controls. The strip carries no
+ * padding of its own, so a pill's left edge lines up with the heading and with
+ * every section below it. */
+.bp-tabbar {
+	/* Content, not a container: aligned with the headings and section text. */
+	padding: 0 var(--bp-pad);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.bp-tabs { display: flex; gap: 8px; }
+.bp-tab {
+	padding: 6px 12px;
+	border: none;
+	border-radius: var(--bp-radius-pill);
+	background: var(--bp-stone-100);
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-medium);
+	color: var(--bp-stone-700);
+	cursor: pointer;
+	transition: all var(--bp-transition-fast);
+}
+.bp-tab:hover { background: var(--bp-stone-150); }
+.bp-tab.is-active { background: var(--bp-accent-600); color: #fff; }
+.bp-tabbar-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bp-tabbar-filters .bp-input { height: var(--bp-control-sm); font-size: var(--bp-text-sm); padding: 0 12px; border-radius: var(--bp-radius-pill); width: auto; }
+
+/* ---- WordPress content rows ---- */
+.bp-content-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: var(--bp-pad);
+	border-radius: var(--bp-radius-lg);
+	background: var(--bp-surface-card);
+}
+.bp-content-main { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.bp-content-title {
+	font-size: var(--bp-text-base);
+	font-weight: var(--bp-weight-medium);
+	color: var(--bp-stone-800);
+}
+.bp-content-type {
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--bp-stone-400);
+}
+.bp-content-actions { flex-shrink: 0; }
+
+/* ---- Automation rules ---- */
+.bp-rules { display: flex; flex-direction: column; gap: var(--bp-gutter); align-items: flex-start; }
+/* White on the parent card's off-white, so the 12px inset of a rule's fields
+ * reads as "inside this rule" rather than as a stray indent. */
+.bp-rule {
+	width: 100%;
+	border-radius: var(--bp-radius-lg);
+	background: var(--bp-surface-main);
+	/* Same inset as the grey card it sits in, so the nesting keeps one rhythm. */
+	padding: var(--bp-pad);
+	transition: opacity var(--bp-transition-base);
+}
+.bp-rule .bp-input,
+.bp-rule .bp-textarea { background: var(--bp-surface-main); }
+.bp-rule.is-off { opacity: 0.55; }
+.bp-rule-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.bp-rule-head .bp-input { flex: 1; }
+.bp-input-sm { height: var(--bp-control-sm); font-size: var(--bp-text-sm); padding: 0 12px; border-radius: var(--bp-radius-lg); }
+.bp-rule-remove {
+	display: flex; align-items: center; justify-content: center;
+	width: 28px; height: 28px; flex-shrink: 0;
+	border: none; border-radius: 50%; background: transparent;
+	color: var(--bp-stone-400); cursor: pointer;
+	transition: all var(--bp-transition-fast);
+}
+.bp-rule-remove:hover { background: var(--bp-error-bg); color: var(--bp-error-text); }
+.bp-rule-body { display: flex; flex-direction: column; gap: var(--bp-stack); }
+.bp-rule-label {
+	display: flex; align-items: baseline; gap: 6px;
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--bp-stone-400);
+	margin-bottom: 6px;
+}
+.bp-rule-optional { text-transform: none; letter-spacing: 0; font-weight: var(--bp-weight-normal); color: var(--bp-stone-400); }
+
+/* ---- API key menu ----
+ * The key field is only needed when replacing a working key, so it hangs off
+ * the key itself instead of sitting open on every visit.
+ */
+.bp-keymenu { position: relative; }
+.bp-keymenu > summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	list-style: none;
+	cursor: pointer;
+	color: var(--bp-stone-500);
+	border-radius: var(--bp-radius-pill);
+	transition: color var(--bp-transition-fast);
+}
+.bp-keymenu > summary::-webkit-details-marker { display: none; }
+.bp-keymenu > summary:hover { color: var(--bp-stone-700); }
+.bp-keymenu[open] > .bp-keymenu-chevron,
+.bp-keymenu[open] > summary .bp-keymenu-chevron { transform: rotate(180deg); }
+.bp-keymenu-chevron { transition: transform var(--bp-transition-fast); }
+.bp-keymenu-pop {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	z-index: 100;
+	width: 340px;
+	max-width: 80vw;
+	padding: 16px;
+	background: var(--bp-surface-main);
+	border: 1px solid var(--bp-stone-200);
+	border-radius: var(--bp-radius-lg);
+	box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+/* ---- Collapsed rule row ---- */
+.bp-rule-summary {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px var(--bp-pad);
+}
+.bp-rule-summary-main { flex: 1; min-width: 0; }
+.bp-rule-summary-title {
+	font-size: var(--bp-text-base);
+	font-weight: var(--bp-weight-medium);
+	color: var(--bp-stone-800);
+}
+.bp-rule-summary-sub {
+	font-size: var(--bp-text-xs);
+	color: var(--bp-stone-400);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.bp-rule-menu { position: relative; flex-shrink: 0; }
+.bp-rule-menu-trigger {
+	display: flex; align-items: center; justify-content: center;
+	width: 28px; height: 28px;
+	border: none; border-radius: 50%; background: transparent;
+	color: var(--bp-stone-400); cursor: pointer;
+	transition: all var(--bp-transition-fast);
+}
+.bp-rule-menu-trigger:hover { background: var(--bp-stone-100); color: var(--bp-stone-700); }
+/* 12px outer − 4px padding = 8px items, the app's nesting rule. */
+.bp-rule-menu-pop {
+	position: absolute;
+	top: calc(100% + 4px);
+	right: 0;
+	z-index: 100;
+	min-width: 140px;
+	padding: 4px;
+	background: var(--bp-surface-main);
+	border: 1px solid var(--bp-stone-200);
+	border-radius: var(--bp-radius-lg);
+	box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+}
+.bp-rule-menu-item {
+	display: block;
+	width: 100%;
+	padding: 10px 12px;
+	border: none;
+	border-radius: 8px;
+	background: transparent;
+	text-align: left;
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-sm);
+	color: var(--bp-stone-700);
+	cursor: pointer;
+}
+.bp-rule-menu-item:hover { background: var(--bp-stone-50); }
+.bp-rule-menu-item.is-danger { color: var(--bp-error-text); }
+.bp-rule-menu-item.is-danger:hover { background: var(--bp-error-bg); }
+
+/* ---- Token help ---- */
+.bp-token-help {
+	margin-top: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.bp-token-help-row { font-size: var(--bp-text-xs); color: var(--bp-stone-500); }
+.bp-token-help-row code {
+	font-family: 'DM Mono', 'SF Mono', monospace;
+	color: var(--bp-stone-700);
+	background: var(--bp-stone-100);
+	padding: 1px 6px;
+	border-radius: var(--bp-radius-sm);
+	margin-right: 6px;
+}
+
+/* Empty state, aligned on the content line like every other row. */
+.bp-empty-row {
+	padding: var(--bp-pad);
+	border-radius: var(--bp-radius-lg);
+	background: var(--bp-surface-card);
+}

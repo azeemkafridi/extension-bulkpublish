@@ -1,0 +1,148 @@
+/*
+ * Popup-only layout on top of tokens.css (which carries all bp-* component
+ * styles from the WordPress plugin). Accent: --bp-accent #fa8112.
+ */
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 400px;
+	min-height: 480px;
+	background: var(--bp-surface, #fff);
+}
+
+.bp-app {
+	display: flex;
+	flex-direction: column;
+	min-height: 480px;
+	font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.bp-app-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--bp-border, #e5e2dc);
+	position: sticky;
+	top: 0;
+	background: inherit;
+	z-index: 5;
+}
+
+.bp-app-title {
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.bp-tabs {
+	margin-left: auto;
+	display: flex;
+	gap: 2px;
+}
+
+.bp-tab {
+	border: 0;
+	background: none;
+	padding: 6px 10px;
+	border-radius: 8px;
+	font-size: 12px;
+	cursor: pointer;
+	color: var(--bp-muted, #6b675f);
+}
+
+.bp-tab.is-active {
+	background: var(--bp-accent-soft, #fdeadb);
+	color: var(--bp-accent, #fa8112);
+	font-weight: 600;
+}
+
+.bp-app-body {
+	padding: 14px;
+	flex: 1;
+}
+
+/* Segmented control (link-tracking tri-state) */
+.bp-segmented {
+	display: inline-flex;
+	border: 1px solid var(--bp-border, #e5e2dc);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.bp-segment {
+	border: 0;
+	background: none;
+	padding: 6px 10px;
+	font-size: 12px;
+	cursor: pointer;
+	color: var(--bp-muted, #6b675f);
+}
+
+.bp-segment + .bp-segment {
+	border-left: 1px solid var(--bp-border, #e5e2dc);
+}
+
+.bp-segment.is-active {
+	background: var(--bp-accent-soft, #fdeadb);
+	color: var(--bp-accent, #fa8112);
+	font-weight: 600;
+}
+
+/* Recent posts */
+.bp-post-card {
+	border: 1px solid var(--bp-border, #e5e2dc);
+	border-radius: 10px;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bp-post-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.bp-post-marks {
+	display: inline-flex;
+	gap: 2px;
+}
+
+.bp-post-content {
+	font-size: 12px;
+	line-height: 1.4;
+	word-break: break-word;
+}
+
+/* Page-image grabber */
+.bp-page-images {
+	margin-top: 8px;
+	border: 1px solid var(--bp-border, #e5e2dc);
+	border-radius: 10px;
+	padding: 8px;
+}
+
+.bp-media-pick {
+	cursor: pointer;
+	border: 0;
+	padding: 0;
+	background: none;
+	position: relative;
+}
+
+.bp-media-pick .bp-spinner {
+	position: absolute;
+	inset: 0;
+	margin: auto;
+}
+
+.bp-key-mask {
+	font-size: 13px;
+	padding: 4px 8px;
+	background: var(--bp-surface-2, #f6f4f0);
+	border-radius: 6px;
+}
