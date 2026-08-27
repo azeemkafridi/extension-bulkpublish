@@ -4,7 +4,7 @@
  * Caption prefills from the current page (or the context-menu target);
  * %%title%% / %%link%% expand against that page at submit time.
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { PLATFORM_LIMITS, platformLabel } from '@/lib/constants.js';
 import { errorMessage, isApprovalRequired } from '@/lib/api.js';
 import { buildPostBody, hasLink as detectLink, overLimits as checkLimits } from '@/lib/compose.js';
@@ -14,6 +14,10 @@ import { ChannelSelector } from './ChannelSelector.jsx';
 import { MediaField } from './MediaField.jsx';
 import { StatusList } from './StatusList.jsx';
 import { CostTable } from './CostTable.jsx';
+import { CaptionTokens, insertToken, insertAtCaret } from './CaptionTokens.jsx';
+import { PagePreview } from './PagePreview.jsx';
+import { fetchPageImage, b64ToBlob } from '../page.js';
+import { uploadBlob, extForMime } from '../upload.js';
 
 const browserTz = () => {
 	try {
@@ -32,6 +36,7 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 	// { scheduled: bool, approvalStatus: string }
 	const [ done, setDone ] = useState( null );
 	const [ approvalBlocked, setApprovalBlocked ] = useState( false );
+	const captionRef = useRef( null );
 
 	useEffect( () => {
 		let alive = true;
@@ -113,6 +118,33 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 		overLimits.length === 0 &&
 		! submitting;
 
+	/**
+	 * Attach the page's social image. The fetch happens inside the page (which
+	 * can read its own CDN's images where the extension origin is refused),
+	 * then the bytes go straight to BulkPublish.
+	 */
+	const attachPageImage = async ( src ) => {
+		const got = await fetchPageImage( src );
+		if ( ! got ) {
+			throw new Error(
+				"Couldn't read that image from the page. Add it from Media instead."
+			);
+		}
+		const blob = b64ToBlob( got.b64, got.type );
+		const file = await uploadBlob(
+			client,
+			blob,
+			`page-image.${ extForMime( got.type ) }`
+		);
+		set( {
+			mediaIds: [ ...( state.mediaIds || [] ), file.id ],
+			mediaItems: {
+				...( state.mediaItems || {} ),
+				[ file.id ]: { url: src, type: 'image', name: 'page image' },
+			},
+		} );
+	};
+
 	const getQuota = useCallback( async () => {
 		const [ usage, x ] = await Promise.all( [
 			client.getQuotaUsage(),
@@ -169,6 +201,23 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 
 	return (
 		<div className="bp-composer">
+			{ ! state.pageCardDismissed && (
+				<PagePreview
+					page={ pageContext }
+					onInsert={ ( text ) =>
+						insertAtCaret(
+							captionRef.current,
+							text,
+							caption,
+							( next ) => set( { caption: next } ),
+							{ separate: true }
+						)
+					}
+					onUseImage={ attachPageImage }
+					onDismiss={ () => set( { pageCardDismissed: true } ) }
+				/>
+			) }
+
 			<div className="bp-field">
 				{ channels === null ? (
 					<Spinner label="Loading channels…" />
@@ -199,28 +248,23 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 			</div>
 
 			<div className="bp-field">
-				<div className="bp-row bp-row-between">
-					<div className="bp-label">Caption</div>
-					{ minLimit && (
-						<span
-							className={ cx(
-								'bp-charcount',
-								overLimits.length && 'is-over'
-							) }
-						>
-							{ resolvedCaption.length } / { minLimit }
-						</span>
-					) }
-				</div>
+				{ /* The character count lives in the sticky action bar, where it
+				     stays visible while the caption is scrolled off. */ }
+				<div className="bp-label">Caption</div>
 				<Textarea
+					ref={ captionRef }
 					value={ caption }
 					onChange={ ( e ) => set( { caption: e.target.value } ) }
 					placeholder="Write your post…"
 					error={ overLimits.length > 0 }
 				/>
-				<span className="bp-hint">
-					%%title%% and %%link%% expand to this page's title and URL.
-				</span>
+				<CaptionTokens
+					onInsert={ ( token ) =>
+						insertToken( captionRef.current, token, caption, ( next ) =>
+							set( { caption: next } )
+						)
+					}
+				/>
 				{ overLimits.map( ( o ) => (
 					<span className="bp-error-text" key={ o.platform }>
 						{ platformLabel( o.platform ) }: { o.length }/{ o.limit } characters
@@ -326,7 +370,31 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 				</Notice>
 			) }
 
-			<div className="bp-row" style={ { gap: 8 } }>
+			{ state.bpPostId && (
+				<div className="bp-field">
+					<div className="bp-label">Status</div>
+					<StatusList client={ client } postId={ state.bpPostId } />
+				</div>
+			) }
+
+			{ /*
+			  * Pinned to the bottom of the popup. Compose runs well past the
+			  * ~600px Chrome allows a popup, so an in-flow button left the
+			  * primary action hundreds of pixels below the fold.
+			  */ }
+			<div className="bp-actionbar">
+				{ minLimit ? (
+					<span
+						className={ cx(
+							'bp-charcount',
+							overLimits.length && 'is-over'
+						) }
+					>
+						{ resolvedCaption.length } / { minLimit }
+					</span>
+				) : (
+					<span />
+				) }
 				{ state.scheduleEnabled ? (
 					<Button
 						onClick={ () => submit( 'schedule' ) }
@@ -345,13 +413,6 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 					</Button>
 				) }
 			</div>
-
-			{ state.bpPostId && (
-				<div className="bp-field">
-					<div className="bp-label">Status</div>
-					<StatusList client={ client } postId={ state.bpPostId } />
-				</div>
-			) }
 		</div>
 	);
 }

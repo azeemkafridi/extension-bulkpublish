@@ -13,24 +13,97 @@ export async function getActiveTab() {
 	return tab || null;
 }
 
-/** Title, URL, and current selection of the active tab. */
+/**
+ * Everything the composer knows about the page you're on: title, URL,
+ * selection, and the sharing metadata the page already publishes for social
+ * cards (og:*, twitter:*, meta description, favicon).
+ *
+ * All of it is read in the user's own tab by an injected function — the page
+ * they already have open does the work. We never hand a URL to the server to
+ * fetch and scrape, which would put a crawler in the request path of every
+ * popup open and see pages the user's session can reach but ours cannot.
+ *
+ * One injection returns the lot; splitting it would mean a round trip each.
+ */
 export async function getPageContext() {
 	const tab = await getActiveTab();
 	if ( ! tab || ! tab.id ) {
 		return { title: '', url: '', selectionText: '' };
 	}
-	let selectionText = '';
+	// tabUrl is kept alongside url (which may become the canonical) so callers
+	// can tell whether a stored context-menu payload refers to this same page.
+	const base = {
+		title: tab.title || '',
+		url: tab.url || '',
+		tabUrl: tab.url || '',
+		selectionText: '',
+	};
 	try {
 		const [ res ] = await browser.scripting.executeScript( {
 			target: { tabId: tab.id },
-			func: () => String( window.getSelection() || '' ),
+			func: () => {
+				const abs = ( u ) => {
+					try {
+						return u ? new URL( u, document.baseURI ).href : '';
+					} catch ( e ) {
+						return '';
+					}
+				};
+				const meta = ( sel ) => {
+					const el = document.querySelector( sel );
+					return el ? ( el.getAttribute( 'content' ) || '' ).trim() : '';
+				};
+				const first = ( ...vals ) => vals.find( ( v ) => v ) || '';
+				const icon = document.querySelector(
+					'link[rel~="apple-touch-icon"], link[rel~="icon"], link[rel="shortcut icon"]'
+				);
+				return {
+					selectionText: String( window.getSelection() || '' ).trim(),
+					title: first(
+						meta( 'meta[property="og:title"]' ),
+						meta( 'meta[name="twitter:title"]' ),
+						document.title
+					),
+					description: first(
+						meta( 'meta[property="og:description"]' ),
+						meta( 'meta[name="twitter:description"]' ),
+						meta( 'meta[name="description"]' )
+					),
+					siteName: first(
+						meta( 'meta[property="og:site_name"]' ),
+						location.hostname.replace( /^www\./, '' )
+					),
+					image: abs(
+						first(
+							meta( 'meta[property="og:image:secure_url"]' ),
+							meta( 'meta[property="og:image"]' ),
+							meta( 'meta[name="twitter:image"]' )
+						)
+					),
+					favicon: abs( icon ? icon.getAttribute( 'href' ) : '/favicon.ico' ),
+					canonical: abs(
+						first(
+							meta( 'meta[property="og:url"]' ),
+							( document.querySelector( 'link[rel="canonical"]' ) || {} ).href
+						)
+					),
+				};
+			},
 		} );
-		selectionText = ( res && res.result ) || '';
+		const r = ( res && res.result ) || {};
+		return {
+			...base,
+			...r,
+			// The tab's own title/URL win when the page published nothing useful.
+			title: r.title || base.title,
+			url: r.canonical || base.url,
+		};
 	} catch ( e ) {
-		// chrome:// pages, the web store, PDFs — no injection allowed. The
-		// title/URL prefill still works.
+		// chrome:// pages, the Web Store, PDFs, file:// — injection is refused.
+		// Title and URL still come from the tab itself, so prefill degrades
+		// rather than failing.
+		return base;
 	}
-	return { title: tab.title || '', url: tab.url || '', selectionText };
 }
 
 /**

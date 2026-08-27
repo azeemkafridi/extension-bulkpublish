@@ -6,23 +6,9 @@
  */
 import { useState, useRef } from 'react';
 import { errorMessage } from '@/lib/api.js';
-import { SIMPLE_UPLOAD_MAX_BYTES } from '@/lib/constants.js';
-import { multipartUpload } from '@/lib/multipart.js';
 import { collectPageImages, fetchPageImage, b64ToBlob } from '../page.js';
+import { uploadBlob, extForMime } from '../upload.js';
 import { Notice, Spinner } from './ui.jsx';
-
-const putPart = async ( url, body ) => {
-	const res = await fetch( url, { method: 'PUT', body } );
-	if ( ! res.ok ) {
-		throw new Error( `Part upload failed (${ res.status })` );
-	}
-	// R2 returns the part's ETag as a quoted header.
-	const etag = ( res.headers.get( 'ETag' ) || '' ).replace( /"/g, '' );
-	if ( ! etag ) {
-		throw new Error( 'Part upload returned no ETag' );
-	}
-	return { etag };
-};
 
 export function MediaField( { client, ids = [], items = {}, onChange } ) {
 	const [ err, setErr ] = useState( '' );
@@ -45,22 +31,7 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 		onChange( ids.filter( ( x ) => x !== id ), nextItems );
 	};
 
-	const uploadBlob = async ( blob, name ) => {
-		if ( blob.size > SIMPLE_UPLOAD_MAX_BYTES ) {
-			const res = await multipartUpload( {
-				client,
-				file: { name, type: blob.type, size: blob.size },
-				getPart: async ( start, end ) => blob.slice( start, end ),
-				putPart,
-				onProgress: ( { partsDone, partsTotal } ) =>
-					setProgress( `Uploading ${ name }… part ${ partsDone }/${ partsTotal }` ),
-			} );
-			return res.file;
-		}
-		setProgress( `Uploading ${ name }…` );
-		const res = await client.uploadMedia( blob, name );
-		return res.file;
-	};
+	const send = ( blob, name ) => uploadBlob( client, blob, name, setProgress );
 
 	const onFiles = async ( fileList ) => {
 		const files = Array.from( fileList || [] );
@@ -71,7 +42,7 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 		setUploading( true );
 		try {
 			for ( const f of files ) {
-				const file = await uploadBlob( f, f.name );
+				const file = await send( f, f.name );
 				add( file.id, {
 					url: f.type.startsWith( 'image/' )
 						? URL.createObjectURL( f )
@@ -109,8 +80,7 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 				);
 			}
 			const blob = b64ToBlob( got.b64, got.type );
-			const ext = ( got.type.split( '/' )[ 1 ] || 'jpg' ).split( '+' )[ 0 ];
-			const file = await uploadBlob( blob, `page-image.${ ext }` );
+			const file = await send( blob, `page-image.${ extForMime( got.type ) }` );
 			add( file.id, { url: src, type: 'image', name: file.fileName || 'page image' } );
 		} catch ( e ) {
 			setErr( errorMessage( e ) );
