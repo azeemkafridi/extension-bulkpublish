@@ -3,7 +3,7 @@
  * (context-menu payload wins over the plain "current page" prefill), and
  * renders the Compose / Recent / Settings tabs.
  */
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BulkPublishClient } from '@/lib/api.js';
 import { buildPrefill } from '@/lib/prefill.js';
 import { shouldRestore } from '@/lib/draft.js';
@@ -14,7 +14,7 @@ import {
 	pendingPrefillItem,
 } from '@/lib/storage.js';
 import { getPageContext } from './page.js';
-import { cx, Spinner } from './components/ui.jsx';
+import { Spinner, Menu, MenuItem } from './components/ui.jsx';
 import { Composer } from './components/Composer.jsx';
 import { RecentPosts } from './components/RecentPosts.jsx';
 import { Settings } from './components/Settings.jsx';
@@ -56,32 +56,6 @@ export default function App() {
 	const [ tab, setTab ] = useState( 'compose' );
 	const [ state, setState ] = useState( EMPTY_STATE );
 	const [ pageContext, setPageContext ] = useState( { title: '', url: '', selectionText: '' } );
-	const [ menuOpen, setMenuOpen ] = useState( false );
-	const menuRef = useRef( null );
-
-	// Close the section menu on outside click / Escape, same as the channel popover.
-	useEffect( () => {
-		if ( ! menuOpen ) {
-			return;
-		}
-		const onDown = ( e ) => {
-			if ( menuRef.current && ! menuRef.current.contains( e.target ) ) {
-				setMenuOpen( false );
-			}
-		};
-		const onKey = ( e ) => {
-			if ( e.key === 'Escape' ) {
-				setMenuOpen( false );
-			}
-		};
-		document.addEventListener( 'mousedown', onDown );
-		document.addEventListener( 'keydown', onKey );
-		return () => {
-			document.removeEventListener( 'mousedown', onDown );
-			document.removeEventListener( 'keydown', onKey );
-		};
-	}, [ menuOpen ] );
-
 	useEffect( () => {
 		( async () => {
 			const [ key, stored, draft, pending, page ] = await Promise.all( [
@@ -206,41 +180,18 @@ export default function App() {
 				<span className="bp-app-section">
 					{ ( TABS.find( ( [ id ] ) => id === tab ) || [] )[ 1 ] }
 				</span>
-				<div className="bp-menu" ref={ menuRef }>
-					<button
-						type="button"
-						className="bp-iconbtn"
-						onClick={ () => setMenuOpen( ! menuOpen ) }
-						aria-haspopup="menu"
-						aria-expanded={ menuOpen }
-						aria-label="Menu"
-						title="Menu"
-					>
-						<IconMenu />
-					</button>
-					{ menuOpen && (
-						<div className="bp-menu-pop" role="menu">
-							{ TABS.map( ( [ id, label ] ) => (
-								<button
-									type="button"
-									key={ id }
-									role="menuitem"
-									className={ cx(
-										'bp-menu-item',
-										tab === id && 'is-active'
-									) }
-									onClick={ () => {
-										setTab( id );
-										setMenuOpen( false );
-									} }
-								>
-									<span>{ label }</span>
-									{ tab === id && <IconCheck /> }
-								</button>
-							) ) }
-						</div>
-					) }
-				</div>
+				<Menu icon={ <IconMenu /> } label="Menu">
+					{ TABS.map( ( [ id, label ] ) => (
+						<MenuItem
+							key={ id }
+							active={ tab === id }
+							onClick={ () => setTab( id ) }
+							after={ tab === id ? <IconCheck /> : null }
+						>
+							{ label }
+						</MenuItem>
+					) ) }
+				</Menu>
 			</header>
 			<main className="bp-app-body">
 				{ tab === 'compose' &&

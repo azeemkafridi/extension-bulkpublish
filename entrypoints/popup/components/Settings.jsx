@@ -58,27 +58,38 @@ export function Settings( {
 	};
 
 	return (
-		<div className="bp-stack" style={ { gap: 16 } }>
-			<div className="bp-field">
-				<div className="bp-label">API key</div>
+		<div className="bp-settings">
+			<section className="bp-setting">
+				<h2 className="bp-setting-label">API key</h2>
+
 				{ hasKey && ! editing ? (
-					<div className="bp-row" style={ { gap: 8 } }>
-						<code className="bp-key-mask">bp_••••••••••••</code>
-						<button
-							type="button"
-							className="bp-iconbtn"
-							onClick={ () => setEditing( true ) }
-							title="Replace API key"
-							aria-label="Replace API key"
-						>
-							<IconPencil />
-						</button>
+					<>
+						<div className="bp-keyrow">
+							<code className="bp-key-mask">bp_••••••••••••</code>
+							<button
+								type="button"
+								className="bp-iconbtn"
+								onClick={ () => setEditing( true ) }
+								title="Replace API key"
+								aria-label="Replace API key"
+							>
+								<IconPencil />
+							</button>
+						</div>
+						<p className="bp-setting-hint">
+							Stored only in this browser's extension storage — never
+							synced to your other devices.
+						</p>
 						{ /* Disconnect keeps its words: an icon-only control for a
-						     destructive action is too easy to hit by accident. */ }
-						<Button variant="ghost" size="sm" onClick={ onDisconnect }>
-							Disconnect
-						</Button>
-					</div>
+						     destructive action is too easy to hit by accident. It sits
+						     on its own line so it is never mistaken for part of the
+						     key row. */ }
+						<div className="bp-setting-actions">
+							<Button variant="ghost" size="sm" onClick={ onDisconnect }>
+								Disconnect
+							</Button>
+						</div>
+					</>
 				) : (
 					<>
 						<TextInput
@@ -88,7 +99,7 @@ export function Settings( {
 							placeholder="bp_…"
 							autoComplete="off"
 						/>
-						<span className="bp-hint">
+						<p className="bp-setting-hint">
 							Create one at{ ' ' }
 							<a
 								href="https://app.bulkpublish.com/developer"
@@ -99,8 +110,8 @@ export function Settings( {
 								app.bulkpublish.com/developer
 							</a>
 							. Stored only in this browser's extension storage — never synced.
-						</span>
-						<div className="bp-row" style={ { gap: 8, marginTop: 8 } }>
+						</p>
+						<div className="bp-setting-actions">
 							<Button onClick={ save } loading={ saving } disabled={ ! keyInput.trim() }>
 								Save &amp; verify
 							</Button>
@@ -112,10 +123,10 @@ export function Settings( {
 						</div>
 					</>
 				) }
-			</div>
+			</section>
 
-			<div className="bp-field">
-				<div className="bp-label">Link tracking</div>
+			<section className="bp-setting">
+				<h2 className="bp-setting-label">Link tracking</h2>
 				<Segmented
 					ariaLabel="Link tracking"
 					value={ settings.linkTrackingDefault || 'default' }
@@ -128,11 +139,11 @@ export function Settings( {
 						onSettingsChange( { ...settings, linkTrackingDefault: v } )
 					}
 				/>
-				<span className="bp-hint">
+				<p className="bp-setting-hint">
 					“Account default” inherits your BulkPublish workspace setting;
 					“Off” forces plain links for posts sent from this extension.
-				</span>
-			</div>
+				</p>
+			</section>
 
 			{ msg && <Notice type={ msg.type }>{ msg.text }</Notice> }
 		</div>

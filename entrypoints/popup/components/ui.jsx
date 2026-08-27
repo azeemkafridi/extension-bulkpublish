@@ -3,7 +3,7 @@
  * ported from the WordPress plugin's src/components/ui.js (React instead of
  * @wordpress/element, plain strings instead of __()).
  */
-import { forwardRef } from 'react';
+import { forwardRef, useState, useRef, useEffect } from 'react';
 
 export const cx = ( ...parts ) => parts.filter( Boolean ).join( ' ' );
 
@@ -111,6 +111,84 @@ export function Spinner( { label } ) {
 			<span className="bp-spinner" />
 			{ label }
 		</div>
+	);
+}
+
+/**
+ * Popover menu behind an icon button — used for the section switcher and for
+ * per-post actions. Closes on outside click, on Escape, and on any item
+ * activation, so callers never manage that themselves.
+ */
+export function Menu( { icon, label, children, align = 'right' } ) {
+	const [ open, setOpen ] = useState( false );
+	const ref = useRef( null );
+
+	useEffect( () => {
+		if ( ! open ) {
+			return;
+		}
+		const onDown = ( e ) => {
+			if ( ref.current && ! ref.current.contains( e.target ) ) {
+				setOpen( false );
+			}
+		};
+		const onKey = ( e ) => {
+			if ( e.key === 'Escape' ) {
+				setOpen( false );
+			}
+		};
+		document.addEventListener( 'mousedown', onDown );
+		document.addEventListener( 'keydown', onKey );
+		return () => {
+			document.removeEventListener( 'mousedown', onDown );
+			document.removeEventListener( 'keydown', onKey );
+		};
+	}, [ open ] );
+
+	return (
+		<div className="bp-menu" ref={ ref }>
+			<button
+				type="button"
+				className="bp-iconbtn"
+				onClick={ () => setOpen( ! open ) }
+				aria-haspopup="menu"
+				aria-expanded={ open }
+				aria-label={ label }
+				title={ label }
+			>
+				{ icon }
+			</button>
+			{ open && (
+				<div
+					className="bp-menu-pop"
+					data-align={ align }
+					role="menu"
+					// Any activation inside dismisses the menu.
+					onClick={ () => setOpen( false ) }
+				>
+					{ children }
+				</div>
+			) }
+		</div>
+	);
+}
+
+export function MenuItem( { children, onClick, active, danger, disabled, after } ) {
+	return (
+		<button
+			type="button"
+			role="menuitem"
+			disabled={ disabled }
+			className={ cx(
+				'bp-menu-item',
+				active && 'is-active',
+				danger && 'is-danger'
+			) }
+			onClick={ onClick }
+		>
+			<span>{ children }</span>
+			{ after }
+		</button>
 	);
 }
 
