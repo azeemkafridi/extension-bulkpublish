@@ -10,6 +10,13 @@ import { useState } from 'react';
 import { errorMessage } from '@/lib/api.js';
 import { Button, TextInput, Notice, Segmented } from './ui.jsx';
 
+const IconPencil = () => (
+	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+		<path d="M12 20h9" />
+		<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+	</svg>
+);
+
 export function Settings( {
 	hasKey,
 	onSaveKey,
@@ -57,9 +64,17 @@ export function Settings( {
 				{ hasKey && ! editing ? (
 					<div className="bp-row" style={ { gap: 8 } }>
 						<code className="bp-key-mask">bp_••••••••••••</code>
-						<Button variant="secondary" size="sm" onClick={ () => setEditing( true ) }>
-							Replace API key
-						</Button>
+						<button
+							type="button"
+							className="bp-iconbtn"
+							onClick={ () => setEditing( true ) }
+							title="Replace API key"
+							aria-label="Replace API key"
+						>
+							<IconPencil />
+						</button>
+						{ /* Disconnect keeps its words: an icon-only control for a
+						     destructive action is too easy to hit by accident. */ }
 						<Button variant="ghost" size="sm" onClick={ onDisconnect }>
 							Disconnect
 						</Button>

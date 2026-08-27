@@ -66,6 +66,13 @@ body {
 /* Segmented control (link-tracking tri-state) */
 .bp-segmented {
 	display: inline-flex;
+	/*
+	 * .bp-field is a column flex container, which stretches its children —
+	 * and `inline-flex` on a flex item is blockified to `flex`, so it cannot
+	 * shrink-wrap on its own. align-self is what actually keeps the bordered
+	 * box hugging the three segments instead of running the popup's width.
+	 */
+	align-self: flex-start;
 	border: 1px solid var(--bp-border, #e5e2dc);
 	border-radius: 8px;
 	overflow: hidden;
@@ -149,6 +156,26 @@ body {
  */
 .bp-platform-icon[data-platform='snapchat'] {
 	background: rgba(255, 252, 0, 0.25);
+}
+
+/* Compact icon-only affordance (edit the API key). */
+.bp-iconbtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--bp-border, #e5e2dc);
+	border-radius: 8px;
+	background: none;
+	color: var(--bp-muted, #6b675f);
+	cursor: pointer;
+}
+
+.bp-iconbtn:hover {
+	color: var(--bp-accent, #fa8112);
+	border-color: var(--bp-accent, #fa8112);
 }
 
 .bp-key-mask {

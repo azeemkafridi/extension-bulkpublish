@@ -79,6 +79,16 @@ npm run build:firefox && npm run zip:firefox
 
 Pure logic (API client, post-body assembly, cost math, multipart planning, prefill) lives in `lib/` with no browser globals so `node --test` covers it directly. UI is React in `entrypoints/popup/`, ported from the BulkPublish WordPress plugin; `assets/tokens.css` is shared with it verbatim.
 
+### Icons
+
+`public/icon/*.png` is generated from `assets/plugin-logo.svg` — the brand's **plated 1:1** mark (`marketing/public/plugin-logo.svg` upstream), which exists specifically because directories need a square logo on a background plate rather than a mark floating on whatever ground they paint. Do not generate icons from `logo.svg` / `bulk-publish.svg`: those are the 766×474 wordmark and squash badly into a square.
+
+To regenerate after a brand change, from a checkout that has `sharp` available (e.g. the `bulk-publish` webapp):
+
+```bash
+node -e "const s=require('sharp');for(const n of [16,32,48,96,128])s('assets/plugin-logo.svg',{density:1200}).resize(n,n,{fit:'contain',background:{r:0,g:0,b:0,alpha:0}}).png().toFile(\`public/icon/\${n}.png\`)"
+```
+
 ## License
 
 MIT
