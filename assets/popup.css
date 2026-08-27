@@ -24,6 +24,57 @@ body {
 	background: var(--bp-surface-main);
 }
 
+/*
+ * Scrollbars. A classic desktop scrollbar is ~15px — nearly 4% of a 400px
+ * popup — and it parks a grey trough hard against the header and the menu
+ * button. Thin bars with a transparent track hand that width back to the
+ * content and stop the chrome competing with it.
+ *
+ * Chrome 121+ and Firefox honour the standard properties; the -webkit rules
+ * cover older Chrome, which ignores them (and is ignored by the newer engines
+ * in turn, so the two never fight).
+ */
+/*
+ * These two mirror --bp-stone-200 / --bp-stone-400. They have to be restated
+ * here rather than referenced: tokens.css scopes the palette to
+ * .bulkpublish-root, and the element that owns the popup's scrollbar is <html>,
+ * an ancestor of it — a var() there resolves to nothing and the whole
+ * declaration is dropped as invalid, which is what left the bar default-grey.
+ */
+:root {
+	--bp-scrollbar-thumb: #e7e5e4;
+	--bp-scrollbar-thumb-hover: #a8a29e;
+}
+
+.bulkpublish-root,
+.bulkpublish-root *,
+html {
+	scrollbar-width: thin;
+	scrollbar-color: var(--bp-scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--bp-scrollbar-thumb);
+	border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--bp-scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
 .bp-app {
 	display: flex;
 	flex-direction: column;

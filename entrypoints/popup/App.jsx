@@ -6,6 +6,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { BulkPublishClient } from '@/lib/api.js';
 import { buildPrefill } from '@/lib/prefill.js';
+import { shouldRestore } from '@/lib/draft.js';
 import {
 	apiKeyItem,
 	settingsItem,
@@ -121,28 +122,47 @@ export default function App() {
 					...EMPTY_STATE,
 					channels: stored.lastChannelIds || [],
 					caption: prefill.caption,
+					prefillCaption: prefill.caption,
+					pageUrl: context.url,
 				} );
 			} else {
 				setPageContext( page );
-				if ( draft && ( draft.caption || ( draft.mediaIds || [] ).length ) ) {
-					setState( { ...EMPTY_STATE, ...draft } );
-				} else {
-					const prefill = buildPrefill( page );
-					setState( {
-						...EMPTY_STATE,
-						channels: stored.lastChannelIds || [],
-						caption: prefill.caption,
-					} );
-				}
+				const prefill = buildPrefill( page );
+				const fresh = () => ( {
+					...EMPTY_STATE,
+					// Channels are a standing preference, so they carry over
+					// even when the draft itself doesn't.
+					channels: ( draft && draft.channels && draft.channels.length
+						? draft.channels
+						: stored.lastChannelIds ) || [],
+					caption: prefill.caption,
+					prefillCaption: prefill.caption,
+					pageUrl: page.url,
+				} );
+				setState(
+					shouldRestore( draft, page.url )
+						? { ...EMPTY_STATE, ...draft }
+						: fresh()
+				);
 			}
 			setReady( true );
 		} )();
 	}, [] );
 
-	// Autosave the composer so an accidental dismiss loses nothing; remember
-	// the channel selection as the next post's default.
+	// Autosave the composer. A popup is dismissed by any click outside it, so
+	// this is the normal way a session ends, not an edge case — every field
+	// that took the user effort has to survive it, media included. The items
+	// map carries durable upload URLs (not blob: handles), so thumbnails come
+	// back too.
 	useEffect( () => {
 		if ( ! ready ) {
+			return;
+		}
+		// Once a post has gone out, its draft has served its purpose — keeping
+		// it would greet the next popup with an already-published caption and
+		// invite sending it twice. The in-session view keeps showing status.
+		if ( state.published ) {
+			draftItem.removeValue();
 			return;
 		}
 		draftItem.setValue( {
@@ -150,10 +170,17 @@ export default function App() {
 			channels: state.channels,
 			perChannel: state.perChannel,
 			mediaIds: state.mediaIds,
-			mediaItems: {},
+			mediaItems: state.mediaItems,
 			requestApproval: state.requestApproval,
 			scheduleEnabled: state.scheduleEnabled,
 			scheduleAt: state.scheduleAt,
+			pageCardDismissed: state.pageCardDismissed,
+			// Baseline for isUntouchedPrefill on the next open.
+			prefillCaption: state.prefillCaption,
+			pageUrl: state.pageUrl,
+			// Kept so a reopened draft still knows its media belongs to a
+			// created post and must not be deleted on detach.
+			bpPostId: state.bpPostId,
 		} );
 		if ( ( state.channels || [] ).length ) {
 			settingsItem.setValue( { ...settings, lastChannelIds: state.channels } );

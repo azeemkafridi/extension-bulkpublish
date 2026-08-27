@@ -10,7 +10,15 @@ import { collectPageImages, fetchPageImage, b64ToBlob } from '../page.js';
 import { uploadBlob, extForMime } from '../upload.js';
 import { Notice, Spinner } from './ui.jsx';
 
-export function MediaField( { client, ids = [], items = {}, onChange } ) {
+/**
+ * Preview URL that survives the popup closing. `URL.createObjectURL` handles
+ * die with the document, so a reopened draft would show broken thumbnails —
+ * the URLs the upload response gives back are the durable ones.
+ */
+const previewUrl = ( file, fallback ) =>
+	file.thumbnailUrl || file.previewUrl || file.originalUrl || fallback || null;
+
+export function MediaField( { client, ids = [], items = {}, onChange, onRemove } ) {
 	const [ err, setErr ] = useState( '' );
 	const [ uploading, setUploading ] = useState( false );
 	const [ progress, setProgress ] = useState( '' );
@@ -29,6 +37,12 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 		const nextItems = { ...items };
 		delete nextItems[ id ];
 		onChange( ids.filter( ( x ) => x !== id ), nextItems );
+		// Detaching is the user's decision to not use the file at all, so the
+		// upload it created should not sit in their library eating storage
+		// quota. Composer decides whether deleting is actually safe.
+		if ( onRemove ) {
+			onRemove( id );
+		}
 	};
 
 	const send = ( blob, name ) => uploadBlob( client, blob, name, setProgress );
@@ -44,9 +58,7 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 			for ( const f of files ) {
 				const file = await send( f, f.name );
 				add( file.id, {
-					url: f.type.startsWith( 'image/' )
-						? URL.createObjectURL( f )
-						: null,
+					url: previewUrl( file ),
 					type: f.type.startsWith( 'video/' ) ? 'video' : 'image',
 					name: f.name,
 				} );
@@ -81,7 +93,13 @@ export function MediaField( { client, ids = [], items = {}, onChange } ) {
 			}
 			const blob = b64ToBlob( got.b64, got.type );
 			const file = await send( blob, `page-image.${ extForMime( got.type ) }` );
-			add( file.id, { url: src, type: 'image', name: file.fileName || 'page image' } );
+			add( file.id, {
+				// Falls back to the page's own URL for the thumbnail while
+				// derivatives are still being generated.
+				url: previewUrl( file, src ),
+				type: 'image',
+				name: file.fileName || 'page image',
+			} );
 		} catch ( e ) {
 			setErr( errorMessage( e ) );
 		} finally {

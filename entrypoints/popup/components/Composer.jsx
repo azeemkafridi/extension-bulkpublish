@@ -14,10 +14,8 @@ import { ChannelSelector } from './ChannelSelector.jsx';
 import { MediaField } from './MediaField.jsx';
 import { StatusList } from './StatusList.jsx';
 import { CostTable } from './CostTable.jsx';
-import { CaptionTokens, insertToken, insertAtCaret } from './CaptionTokens.jsx';
+import { insertAtCaret } from '@/lib/caret.js';
 import { PagePreview } from './PagePreview.jsx';
-import { fetchPageImage, b64ToBlob } from '../page.js';
-import { uploadBlob, extForMime } from '../upload.js';
 
 const browserTz = () => {
 	try {
@@ -119,30 +117,26 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 		! submitting;
 
 	/**
-	 * Attach the page's social image. The fetch happens inside the page (which
-	 * can read its own CDN's images where the extension origin is refused),
-	 * then the bytes go straight to BulkPublish.
+	 * Detaching media should also reclaim the storage it used, but the server's
+	 * DELETE does not reference-check — `posts.mediaFiles` is a JSONB array,
+	 * not a foreign key — so deleting a file a post already points at would
+	 * leave that post referencing nothing.
+	 *
+	 * Everything in this composer was uploaded by this draft (there is no
+	 * library picker) and uploads are never de-duplicated server-side, so the
+	 * file is ours alone right up until a post is created from it. Once
+	 * `bpPostId` exists we only detach locally and leave the file to the
+	 * server's own retention sweep.
+	 *
+	 * Cleanup is best-effort: the file is already gone from the composer, and
+	 * that sweep collects anything this misses ("uploads abandoned before
+	 * submit" is a case it names explicitly), so a failure needs no interruption.
 	 */
-	const attachPageImage = async ( src ) => {
-		const got = await fetchPageImage( src );
-		if ( ! got ) {
-			throw new Error(
-				"Couldn't read that image from the page. Add it from Media instead."
-			);
+	const releaseMedia = ( id ) => {
+		if ( state.bpPostId ) {
+			return;
 		}
-		const blob = b64ToBlob( got.b64, got.type );
-		const file = await uploadBlob(
-			client,
-			blob,
-			`page-image.${ extForMime( got.type ) }`
-		);
-		set( {
-			mediaIds: [ ...( state.mediaIds || [] ), file.id ],
-			mediaItems: {
-				...( state.mediaItems || {} ),
-				[ file.id ]: { url: src, type: 'image', name: 'page image' },
-			},
-		} );
+		client.deleteMedia( id ).catch( () => {} );
 	};
 
 	const getQuota = useCallback( async () => {
@@ -179,7 +173,7 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 			const post = await client.createAndMaybePublish( body, {
 				publishNow: ! scheduled,
 			} );
-			set( { bpPostId: post.id } );
+			set( { bpPostId: post.id, published: true } );
 			setDone( {
 				scheduled,
 				approvalStatus: post.approvalStatus || 'none',
@@ -213,7 +207,6 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 							{ separate: true }
 						)
 					}
-					onUseImage={ attachPageImage }
 					onDismiss={ () => set( { pageCardDismissed: true } ) }
 				/>
 			) }
@@ -258,13 +251,8 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 					placeholder="Write your post…"
 					error={ overLimits.length > 0 }
 				/>
-				<CaptionTokens
-					onInsert={ ( token ) =>
-						insertToken( captionRef.current, token, caption, ( next ) =>
-							set( { caption: next } )
-						)
-					}
-				/>
+				{ /* No token chips here: the page card above already offers the
+				     same inserts, and duplicating them just costs a row. */ }
 				{ overLimits.map( ( o ) => (
 					<span className="bp-error-text" key={ o.platform }>
 						{ platformLabel( o.platform ) }: { o.length }/{ o.limit } characters
@@ -281,6 +269,7 @@ export function Composer( { client, state, setState, pageContext, settings } ) {
 					onChange={ ( ids, items ) =>
 						set( { mediaIds: ids, mediaItems: items } )
 					}
+					onRemove={ releaseMedia }
 				/>
 			</div>
 

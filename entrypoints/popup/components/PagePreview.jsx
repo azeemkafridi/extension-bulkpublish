@@ -7,30 +7,18 @@
  *
  * The card is entirely optional: dismissing it leaves a plain composer, which
  * is the right shape for a post that has nothing to do with the current tab.
+ *
+ * The page's image is deliberately not offered here — "Grab images from this
+ * page" in the media field already covers it, and with a choice of every image
+ * on the page rather than just the one in the og: tag.
  */
-import { useState } from 'react';
-import { errorMessage } from '@/lib/api.js';
-import { Notice } from './ui.jsx';
-
 const IconX = () => (
 	<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
 		<path d="M18 6L6 18M6 6l12 12" />
 	</svg>
 );
 
-const IconImage = () => (
-	<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-		<rect x="3" y="3" width="18" height="18" rx="2" />
-		<circle cx="8.5" cy="8.5" r="1.5" />
-		<path d="M21 15l-5-5L5 21" />
-	</svg>
-);
-
-export function PagePreview( { page, onInsert, onUseImage, onDismiss } ) {
-	const [ busy, setBusy ] = useState( false );
-	const [ err, setErr ] = useState( '' );
-	const [ usedImage, setUsedImage ] = useState( false );
-
+export function PagePreview( { page, onInsert, onDismiss } ) {
 	if ( ! page || ( ! page.title && ! page.url ) ) {
 		return null;
 	}
@@ -42,19 +30,6 @@ export function PagePreview( { page, onInsert, onUseImage, onDismiss } ) {
 		[ 'description', 'Summary', page.description ],
 		[ 'selectionText', 'Selection', page.selectionText ],
 	].filter( ( [ , , value ] ) => value && String( value ).trim() );
-
-	const useImage = async () => {
-		setErr( '' );
-		setBusy( true );
-		try {
-			await onUseImage( page.image );
-			setUsedImage( true );
-		} catch ( e ) {
-			setErr( errorMessage( e ) );
-		} finally {
-			setBusy( false );
-		}
-	};
 
 	let host = '';
 	try {
@@ -93,7 +68,7 @@ export function PagePreview( { page, onInsert, onUseImage, onDismiss } ) {
 				</div>
 			</div>
 
-			{ ( inserts.length > 0 || page.image ) && (
+			{ inserts.length > 0 && (
 				<div className="bp-pagecard-actions">
 					<span className="bp-tokens-label">Insert</span>
 					{ inserts.map( ( [ key, label, value ] ) => (
@@ -107,21 +82,8 @@ export function PagePreview( { page, onInsert, onUseImage, onDismiss } ) {
 							{ label }
 						</button>
 					) ) }
-					{ page.image && (
-						<button
-							type="button"
-							className="bp-chip"
-							onClick={ useImage }
-							disabled={ busy || usedImage }
-						>
-							<IconImage />
-							{ usedImage ? 'Image added' : busy ? 'Adding…' : 'Image' }
-						</button>
-					) }
 				</div>
 			) }
-
-			{ err && <Notice type="error">{ err }</Notice> }
 		</div>
 	);
 }
