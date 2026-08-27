@@ -8,7 +8,8 @@
 
 Compose, schedule, and publish posts to 15 social media platforms from any page — the [BulkPublish](https://bulkpublish.com) composer as a cross-browser extension, built with [WXT](https://wxt.dev) (Chrome MV3, Firefox, and Chromium relatives from one codebase).
 
-- **Popup composer** — caption prefilled from the page you're on (title, URL, selected text), channel picker with channel sets, per-platform caption overrides with live character limits, media, scheduling, and team approval.
+- **Popup composer** — caption prefilled from the page you're on (title, URL, selected text), channel picker with channel sets, per-platform caption overrides with live character limits, media, scheduling, and team approval. Or ignore the page entirely and just write something.
+- **A card for the current page** — its social image, site name, title and summary, with one-tap chips to drop the title, link, summary or your selection into the caption, or attach the image. Read from the tab by your own browser; the page's URL is never sent to a server to be fetched.
 - **Right-click sharing** — "Share via BulkPublish" on any page, selection, or image opens the composer prefilled with exactly that.
 - **Grab page images** — pull images straight out of the current page into your post, no saving-then-uploading.
 - **Costs and quotas up front** — the same pre-publish table as the app: X credit pricing (link posts cost more than plain ones), plan quota, media storage, and your X balance.
