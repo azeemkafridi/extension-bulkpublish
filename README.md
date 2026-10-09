@@ -53,7 +53,6 @@ A three-way setting, not a checkbox, because the API distinguishes them: **Accou
 | Telegram | 4,096 |
 | YouTube | 5,000 |
 | Tumblr | 32,768 |
-| Reddit | 40,000 |
 | Facebook | 63,206 |
 
 Snapchat is the tightest of the set — its caption is only ever used for a Spotlight description, and stories take no caption at all.

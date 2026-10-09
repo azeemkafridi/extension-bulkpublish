@@ -16,7 +16,6 @@ const ICONS = [
 	'linkedin',
 	'mastodon',
 	'pinterest',
-	'reddit',
 	'snapchat',
 	'telegram',
 	'threads',

@@ -5,8 +5,7 @@ import { overLimits } from '../lib/compose.js';
 
 /**
  * The API's platform enum (webapp/src/lib/db/schema.ts + platforms/validation.ts).
- * 16 platforms exist; public copy advertises 15 because Reddit cannot be newly
- * connected — but an existing Reddit channel still composes, so it belongs here.
+ * 15 platforms.
  */
 const API_PLATFORMS = [
 	'x',
@@ -20,7 +19,6 @@ const API_PLATFORMS = [
 	'youtube',
 	'facebook',
 	'gmb',
-	'reddit',
 	'discord',
 	'telegram',
 	'tumblr',
@@ -40,7 +38,6 @@ test( 'limits match the server (spot-check the ones the WP plugin lacked)', () =
 	assert.equal( PLATFORM_LIMITS.snapchat, 160 );
 	assert.equal( PLATFORM_LIMITS.telegram, 4096 );
 	assert.equal( PLATFORM_LIMITS.discord, 2000 );
-	assert.equal( PLATFORM_LIMITS.reddit, 40000 );
 	assert.equal( PLATFORM_LIMITS.tumblr, 32768 );
 } );
 

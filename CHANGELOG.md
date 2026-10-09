@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 (2026-10-09)
+
+### Removed
+
+- **Reddit platform support removed.** Breaking: `reddit` is no longer a valid
+  platform value, so its character limit, icon and options are gone.
+
 ## 0.1.0 (2026-08-27)
 
 Initial release — the BulkPublish WordPress plugin's composer, rebuilt as a cross-browser extension with WXT (Chrome MV3 and Firefox from one codebase).

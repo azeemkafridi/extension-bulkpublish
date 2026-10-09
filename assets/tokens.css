@@ -523,7 +523,6 @@
 .bp-platform-icon[data-platform="gmb"]       { background: rgba(66, 133, 244, 0.1); }
 .bp-platform-icon[data-platform="linkedin"]  { background: rgba(10, 102, 194, 0.1); }
 .bp-platform-icon[data-platform="mastodon"]  { background: rgba(99, 100, 255, 0.1); }
-.bp-platform-icon[data-platform="reddit"]    { background: rgba(255, 69, 0, 0.1); }
 .bp-platform-icon[data-platform="discord"]   { background: rgba(88, 101, 242, 0.1); }
 .bp-platform-icon[data-platform="telegram"]  { background: rgba(38, 165, 228, 0.1); }
 .bp-platform-icon[data-platform="tumblr"]    { background: rgba(0, 25, 53, 0.08); }

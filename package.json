@@ -1,6 +1,6 @@
 {
   "name": "extension-bulkpublish",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browser extension for BulkPublish — compose, schedule, and publish to 15 social media platforms from any page.",
   "type": "module",
   "private": true,
