@@ -22,5 +22,24 @@ export default defineConfig({
           },
         }
       : {}),
+    ...(browser === 'safari'
+      ? {
+          // The App Store packager refuses an upload whose manifest name
+          // differs from the app's product name.
+          name: 'BulkPublish for Safari',
+          // Safari recolours a one-colour toolbar icon to match its own
+          // buttons (#E7E7E7 on the dark toolbar), so a single black glyph
+          // serves both appearances. The colour logo stays the app icon.
+          action: {
+            default_title: 'Share via BulkPublish',
+            default_icon: {
+              16: 'icon/toolbar/16.png',
+              19: 'icon/toolbar/19.png',
+              32: 'icon/toolbar/32.png',
+              38: 'icon/toolbar/38.png',
+            },
+          },
+        }
+      : {}),
   }),
 });
