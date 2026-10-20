@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { platformLabel } from '@/lib/constants.js';
 import { xPostCost, dollars, includesX, fmtLimit } from '@/lib/cost.js';
+import { IS_SAFARI } from '@/lib/store-copy.js';
 
 /**
  * @param {object} props
@@ -44,7 +45,8 @@ export function CostTable( { platforms, hasLink, mediaCount, getQuota } ) {
 			<div className="bp-cost-title">Before you publish</div>
 			<table className="bp-cost-table">
 				<tbody>
-					{ platforms.map( ( p ) => {
+					{ /* App Store build: no prices or credit balances (see lib/store-copy.js). */ }
+					{ ! IS_SAFARI && platforms.map( ( p ) => {
 						const isX = p === 'x' || p === 'twitter';
 						return (
 							<tr key={ p }>
@@ -69,7 +71,7 @@ export function CostTable( { platforms, hasLink, mediaCount, getQuota } ) {
 							</tr>
 						);
 					} ) }
-					<tr className="bp-cost-sep">
+					<tr className={ IS_SAFARI ? undefined : 'bp-cost-sep' }>
 						<td>Posts today</td>
 						<td>{ fmtLimit( usage.postsToday, limits.postsPerDay ) }</td>
 					</tr>
@@ -83,7 +85,7 @@ export function CostTable( { platforms, hasLink, mediaCount, getQuota } ) {
 							{ fmtLimit( usage.mediaStorageMB, limits.mediaStorageMB ) } MB
 						</td>
 					</tr>
-					{ hasX && xBalance != null && (
+					{ ! IS_SAFARI && hasX && xBalance != null && (
 						<tr>
 							<td>X credit balance</td>
 							<td>

@@ -10,6 +10,7 @@ import {
 	APPROVAL_VARIANTS,
 } from '@/lib/constants.js';
 import { errorMessage, isApprovalRequired } from '@/lib/api.js';
+import { storeSafe } from '@/lib/store-copy.js';
 import { Badge, Button, Notice, Spinner } from './ui.jsx';
 import { PlatformMark } from './PlatformMark.jsx';
 
@@ -174,7 +175,7 @@ export function StatusList( { client, postId, poll = true } ) {
 					) }
 					{ pp.errorMessage && (
 						<span className="bp-error-text" style={ { marginTop: 0 } }>
-							{ pp.errorMessage }
+							{ storeSafe( pp.errorMessage ) }
 						</span>
 					) }
 				</div>
