@@ -9,9 +9,9 @@
 Compose, schedule, and publish posts to 15 social media platforms from any page — the [BulkPublish](https://bulkpublish.com) composer as a cross-browser extension, built with [WXT](https://wxt.dev) (Chrome MV3, Firefox, and Chromium relatives from one codebase).
 
 - **Popup composer** — caption prefilled from the page you're on (title, URL, selected text), channel picker with channel sets, per-platform caption overrides with live character limits, media, scheduling, and team approval. Or ignore the page entirely and just write something.
-- **A card for the current page** — its social image, site name, title and summary, with one-tap chips to drop the title, link, summary or your selection into the caption. Read from the tab by your own browser; the page's URL is never sent to a server to be fetched.
+- **A card for the current page** — its social image, site name, title and summary, with chips you can click or drag into the caption. Clicks honour the cursor or selection you last left in the composer; drops insert where you release them. Read from the tab by your own browser; the page's URL is never sent to a server to be fetched.
 - **Right-click sharing** — "Share via BulkPublish" on any page, selection, or image opens the composer prefilled with exactly that.
-- **Grab page images** — pull images straight out of the current page into your post, no saving-then-uploading.
+- **Add page image** — immediately attach the page's social image (or its largest usable image) to your post, no extra picker or saving-then-uploading.
 - **Costs and quotas up front** — the same pre-publish table as the app: X credit pricing (link posts cost more than plain ones), plan quota, media storage, and your X balance.
 - **Team approval** — hold posts for approval, and approve/reject/retry/delete recent posts from the Recent tab.
 - **Large media** — files over 100 MB upload in 10 MB parts direct to storage, with per-part progress and automatic abort on failure.
@@ -64,7 +64,7 @@ The composer measures the caption *as it will be sent* — `%%title%%` / `%%link
 - `storage` — the API key and your preferences.
 - `contextMenus` — the right-click "Share via BulkPublish" entry.
 - `activeTab` + `scripting` — read the page's title/URL/selection and collect its images, only when you invoke the extension. No content scripts run in the background, and there is no `<all_urls>` host access.
-- `app.bulkpublish.com` — the API. `*.r2.cloudflarestorage.com` — where large-file upload parts go.
+- Two hosts: `app.bulkpublish.com`, which is BulkPublish itself, and the address your large media files upload to directly, in parts.
 
 ## Development
 

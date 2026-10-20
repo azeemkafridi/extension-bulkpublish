@@ -30,8 +30,7 @@ export async function getPageContext() {
 	if ( ! tab || ! tab.id ) {
 		return { title: '', url: '', selectionText: '' };
 	}
-	// tabUrl is kept alongside url (which may become the canonical) so callers
-	// can tell whether a stored context-menu payload refers to this same page.
+	// Keep the actual page URL: sites can advertise a generic or stale canonical.
 	const base = {
 		title: tab.title || '',
 		url: tab.url || '',
@@ -44,20 +43,23 @@ export async function getPageContext() {
 			func: () => {
 				const abs = ( u ) => {
 					try {
-						return u ? new URL( u, document.baseURI ).href : '';
+						const url = u ? new URL( u, document.baseURI ) : null;
+						return url && /^https?:$/.test( url.protocol ) ? url.href : '';
 					} catch ( e ) {
 						return '';
 					}
 				};
 				const meta = ( sel ) => {
-					const el = document.querySelector( sel );
-					return el ? ( el.getAttribute( 'content' ) || '' ).trim() : '';
+					return Array.from( document.querySelectorAll( sel ) )
+						.map( ( el ) => ( el.getAttribute( 'content' ) || '' ).trim() )
+						.find( Boolean ) || '';
 				};
 				const first = ( ...vals ) => vals.find( ( v ) => v ) || '';
 				const icon = document.querySelector(
 					'link[rel~="apple-touch-icon"], link[rel~="icon"], link[rel="shortcut icon"]'
 				);
 				return {
+					url: location.href,
 					selectionText: String( window.getSelection() || '' ).trim(),
 					title: first(
 						meta( 'meta[property="og:title"]' ),
@@ -94,9 +96,10 @@ export async function getPageContext() {
 		return {
 			...base,
 			...r,
-			// The tab's own title/URL win when the page published nothing useful.
+			// Read the URL with the metadata, in case the tab navigated after query().
 			title: r.title || base.title,
-			url: r.canonical || base.url,
+			url: r.url || base.url,
+			tabUrl: r.url || base.tabUrl,
 		};
 	} catch ( e ) {
 		// chrome:// pages, the Web Store, PDFs, file:// — injection is refused.
@@ -147,58 +150,4 @@ export async function collectPageImages() {
 	} catch ( e ) {
 		return [];
 	}
-}
-
-/**
- * Fetch an image's bytes from INSIDE the page. The extension itself has no
- * host permission on arbitrary image CDNs, so a popup-side fetch would be
- * CORS-blocked — but the page that is already displaying the image can
- * usually fetch it. Returns { b64, type } or null.
- */
-export async function fetchPageImage( src ) {
-	const tab = await getActiveTab();
-	if ( ! tab || ! tab.id ) {
-		return null;
-	}
-	try {
-		const [ res ] = await browser.scripting.executeScript( {
-			target: { tabId: tab.id },
-			func: async ( url ) => {
-				try {
-					const r = await fetch( url );
-					if ( ! r.ok ) {
-						return null;
-					}
-					const blob = await r.blob();
-					if ( blob.size > 20 * 1024 * 1024 ) {
-						return null; // structured-clone-unfriendly; keep page grabs small
-					}
-					const b64 = await new Promise( ( resolve, reject ) => {
-						const fr = new FileReader();
-						fr.onload = () =>
-							resolve( String( fr.result ).split( ',' )[ 1 ] || '' );
-						fr.onerror = reject;
-						fr.readAsDataURL( blob );
-					} );
-					return { b64, type: blob.type || 'image/jpeg' };
-				} catch ( e ) {
-					return null;
-				}
-			},
-			args: [ src ],
-		} );
-		return ( res && res.result ) || null;
-	} catch ( e ) {
-		return null;
-	}
-}
-
-/** Base64 → Blob (counterpart of fetchPageImage). */
-export function b64ToBlob( b64, type ) {
-	const bin = atob( b64 );
-	const bytes = new Uint8Array( bin.length );
-	for ( let i = 0; i < bin.length; i++ ) {
-		bytes[ i ] = bin.charCodeAt( i );
-	}
-	return new Blob( [ bytes ], { type } );
 }

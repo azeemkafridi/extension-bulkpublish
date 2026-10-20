@@ -4,9 +4,11 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: ({ browser }) => ({
-    name: 'BulkPublish — Share to 15 Platforms',
+    // AMO rejects a "name" over 45 characters (Chrome allows 75). Keep this
+    // under 45 so one name serves both stores — 36 today.
+    name: 'Social Media Scheduler — BulkPublish',
     description:
-      'Compose, schedule, and publish posts to 15 social media platforms from any page with BulkPublish.',
+      'Compose, schedule, and publish posts to 15+ social media platforms with BulkPublish.',
     permissions: ['storage', 'contextMenus', 'activeTab', 'scripting'],
     // The R2 host is where multipart-upload presigned part URLs point; without
     // it the popup's PUTs would be CORS-blocked.
@@ -18,7 +20,17 @@ export default defineConfig({
     ...(browser === 'firefox'
       ? {
           browser_specific_settings: {
-            gecko: { id: 'chrome@bulkpublish.com', strict_min_version: '115.0' },
+            gecko: {
+              id: 'chrome@bulkpublish.com',
+              strict_min_version: '115.0',
+              // AMO requires this key on every new add-on. The composer sends
+              // the page's title, URL, selected text and chosen image to
+              // app.bulkpublish.com to build the post, so `none` would be a
+              // false declaration even though the user initiates every send.
+              // Nothing else leaves the browser: no telemetry, no analytics,
+              // so `technicalAndInteraction` is deliberately not listed.
+              data_collection_permissions: { required: ['websiteContent'] },
+            },
           },
         }
       : {}),

@@ -17,19 +17,50 @@ import { PlatformMark } from './PlatformMark.jsx';
 const STATUS_VARIANT = {
 	published: 'success',
 	publishing: 'info',
+	processing: 'info',
 	pending: 'neutral',
 	scheduled: 'scheduled',
 	failed: 'error',
 	partial: 'warning',
+	unconfirmed: 'warning',
 };
 
-export function StatusList( { client, postId, poll = true } ) {
-	const [ post, setPost ] = useState( null );
+const STATUS_LABEL = {
+	published: 'Published',
+	publishing: 'Publishing',
+	processing: 'Processing',
+	pending: 'Pending',
+	scheduled: 'Scheduled',
+	failed: 'Failed',
+	partial: 'Partially published',
+	unconfirmed: 'Unconfirmed',
+};
+
+export function StatusList( {
+	client,
+	postId,
+	poll = true,
+	previewPost = null,
+	showPostActions = true,
+	allowPlatformRetry = false,
+	onChanged,
+	hideSummary = false,
+} ) {
+	const [ post, setPost ] = useState( previewPost );
 	const [ err, setErr ] = useState( '' );
 	const [ retrying, setRetrying ] = useState( false );
 	const [ approving, setApproving ] = useState( false );
+	const [ retryingPlatformId, setRetryingPlatformId ] = useState( null );
+	const [ refreshRevision, setRefreshRevision ] = useState( 0 );
 
 	useEffect( () => {
+		// Preview mode is deliberately disconnected from the API. Updating the
+		// selected fixture only swaps local data; no polling or mutations run.
+		if ( previewPost ) {
+			setPost( previewPost );
+			setErr( '' );
+			return undefined;
+		}
 		let alive = true;
 		let timer = null;
 
@@ -41,9 +72,8 @@ export function StatusList( { client, postId, poll = true } ) {
 				}
 				setPost( p );
 				setErr( '' );
-				const stillRunning = ( p.postPlatforms || [] ).some(
-					( pp ) => pp.status === 'pending' || pp.status === 'publishing'
-				);
+				const stillRunning = [ 'publishing', 'processing' ].includes( p.status ) ||
+					( p.postPlatforms || [] ).some( ( pp ) => [ 'publishing', 'processing' ].includes( pp.status ) );
 				if ( poll && stillRunning ) {
 					timer = setTimeout( load, 4000 );
 				}
@@ -61,12 +91,26 @@ export function StatusList( { client, postId, poll = true } ) {
 				clearTimeout( timer );
 			}
 		};
-	}, [ client, postId, poll ] );
+	}, [ client, postId, poll, previewPost, refreshRevision ] );
+
+	const retryRequest = async ( options = {} ) => {
+		try {
+			await client.retryPost( postId, options );
+		} catch ( e ) {
+			if ( e?.code !== 'UNCONFIRMED_REQUIRES_REPUBLISH' ) throw e;
+			// eslint-disable-next-line no-alert
+			if ( ! window.confirm( 'BulkPublish could not confirm whether this post went live. Check the account first. Retry anyway? This may create a duplicate.' ) ) return false;
+			await client.retryPost( postId, { ...options, republish: true } );
+		}
+		setRefreshRevision( ( value ) => value + 1 );
+		onChanged?.();
+		return true;
+	};
 
 	const onRetry = async () => {
 		setRetrying( true );
 		try {
-			await client.retryPost( postId );
+			await retryRequest();
 			setErr( '' );
 		} catch ( e ) {
 			setErr(
@@ -76,6 +120,18 @@ export function StatusList( { client, postId, poll = true } ) {
 			);
 		} finally {
 			setRetrying( false );
+		}
+	};
+
+	const onPlatformRetry = async ( postPlatformId ) => {
+		setRetryingPlatformId( postPlatformId );
+		try {
+			await retryRequest( { postPlatformId } );
+			setErr( '' );
+		} catch ( e ) {
+			setErr( errorMessage( e ) );
+		} finally {
+			setRetryingPlatformId( null );
 		}
 	};
 
@@ -115,13 +171,52 @@ export function StatusList( { client, postId, poll = true } ) {
 
 	const platforms = post.postPlatforms || [];
 	const anyFailed = platforms.some(
-		( pp ) => pp.status === 'failed' || pp.status === 'partial'
+		( pp ) => [ 'failed', 'partial', 'unconfirmed' ].includes( pp.status )
 	);
-
+	const publishedCount = platforms.filter( ( pp ) => pp.status === 'published' ).length;
+	const runningCount = platforms.filter(
+		( pp ) => pp.status === 'pending' || pp.status === 'publishing'
+	).length;
+	const activelyPublishing = [ 'publishing', 'processing' ].includes( post.status );
 	const approval = post.approvalStatus || 'none';
+	let summary = null;
+	if ( approval === 'pending' ) {
+		summary = {
+			type: 'warning',
+			text: 'Awaiting approval. It will publish once a teammate approves it.',
+		};
+	} else if ( approval === 'rejected' ) {
+		summary = {
+			type: 'error',
+			text: 'Approval rejected. Review the reason below.',
+		};
+	} else if ( activelyPublishing && runningCount && anyFailed ) {
+		summary = {
+			type: 'warning',
+			text: `Publishing: ${ publishedCount } of ${ platforms.length } ${ platforms.length === 1 ? 'channel' : 'channels' } published; some channels need attention.`,
+		};
+	} else if ( anyFailed && publishedCount ) {
+		summary = {
+			type: 'warning',
+			text: `Published to ${ publishedCount } of ${ platforms.length } channels. Review the details below.`,
+		};
+	} else if ( anyFailed ) {
+		summary = {
+			type: 'error',
+			text: `Publishing failed. Review ${ platforms.length === 1 ? 'the channel' : 'the channels' } below.`,
+		};
+	} else if ( activelyPublishing && runningCount ) {
+		summary = {
+			type: 'info',
+			text: `Publishing to ${ platforms.length } ${ platforms.length === 1 ? 'channel' : 'channels' }…`,
+		};
+	} else if ( activelyPublishing ) {
+		summary = { type: 'info', text: 'Publishing…' };
+	}
 
 	return (
 		<div className="bp-status">
+			{ ! hideSummary && summary && <Notice type={ summary.type }>{ summary.text }</Notice> }
 			{ approval !== 'none' && (
 				<div className="bp-status-row">
 					<Badge variant={ APPROVAL_VARIANTS[ approval ] || 'neutral' }>
@@ -132,7 +227,7 @@ export function StatusList( { client, postId, poll = true } ) {
 							{ post.rejectionReason }
 						</span>
 					) }
-					{ approval === 'pending' && (
+					{ approval === 'pending' && ! previewPost && showPostActions && (
 						<>
 							<Button
 								variant="secondary"
@@ -161,7 +256,7 @@ export function StatusList( { client, postId, poll = true } ) {
 						{ platformLabel( pp.platform ) }
 					</span>
 					<Badge variant={ STATUS_VARIANT[ pp.status ] || 'neutral' }>
-						{ pp.status }
+						{ STATUS_LABEL[ pp.status ] || pp.status }
 					</Badge>
 					{ pp.platformUrl && (
 						<a
@@ -173,6 +268,17 @@ export function StatusList( { client, postId, poll = true } ) {
 							View
 						</a>
 					) }
+					{ allowPlatformRetry && ! previewPost && [ 'failed', 'unconfirmed' ].includes( pp.status ) && (
+						<Button
+							variant="ghost"
+							size="sm"
+							loading={ retryingPlatformId === pp.id }
+							disabled={ retryingPlatformId !== null }
+							onClick={ () => onPlatformRetry( pp.id ) }
+						>
+							Retry
+						</Button>
+					) }
 					{ pp.errorMessage && (
 						<span className="bp-error-text" style={ { marginTop: 0 } }>
 							{ storeSafe( pp.errorMessage ) }
@@ -180,7 +286,7 @@ export function StatusList( { client, postId, poll = true } ) {
 					) }
 				</div>
 			) ) }
-			{ anyFailed && (
+			{ anyFailed && ! previewPost && showPostActions && (
 				<Button
 					variant="secondary"
 					size="sm"

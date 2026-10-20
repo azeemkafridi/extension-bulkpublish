@@ -2,10 +2,27 @@
 
 ## 0.2.0 (2026-10-09)
 
+### Added
+
+- **Safari** (Mac App Store, as BulkPublish for Safari) and **Opera** builds.
+  The Safari build shows no prices or upgrade prompts, as the App Store requires.
+
 ### Removed
 
 - **Reddit platform support removed.** Breaking: `reddit` is no longer a valid
   platform value, so its character limit, icon and options are gone.
+
+## 0.1.1 (2026-09-09)
+
+- **Custom video covers.** Instagram gains a `coverUrl` field alongside the
+  existing thumbnail timestamp — Instagram accepts a cover image or a cover
+  moment, never both, so setting the URL makes the timestamp ignored. Facebook
+  gains the same thing as `thumbnailUrl` for videos and Reels; Facebook only
+  accepts a cover once the video exists, so it lands a moment after the post
+  and never fails one.
+- The Instagram thumbnail timestamp now actually takes effect on `feed_video`,
+  not only `reel`. The field was already offered for both here; the server was
+  reading it for Reels alone.
 
 ## 0.1.0 (2026-08-27)
 

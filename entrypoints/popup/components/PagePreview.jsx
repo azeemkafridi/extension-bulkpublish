@@ -1,16 +1,15 @@
 /**
- * A card for the page you're on, with one-tap inserts into the caption.
+ * A card for the page you're on, with click and drag inserts into the caption.
  *
  * Everything shown here was read out of the tab itself by an injected function
- * (see page.js) — the browser that already has the page open does the work, so
- * no URL is ever handed to our server to fetch and scrape.
+ * (see page.js) — the browser that already has the page open does the preview
+ * work, so simply opening the composer never asks our server to scrape the URL.
  *
  * The card is entirely optional: dismissing it leaves a plain composer, which
  * is the right shape for a post that has nothing to do with the current tab.
  *
- * The page's image is deliberately not offered here — "Grab images from this
- * page" in the media field already covers it, and with a choice of every image
- * on the page rather than just the one in the og: tag.
+ * The page's image is deliberately not offered here — the media field's
+ * one-click "Add page image" action is the single clear place to attach it.
  */
 const IconX = () => (
 	<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -76,8 +75,14 @@ export function PagePreview( { page, onInsert, onDismiss } ) {
 							type="button"
 							key={ key }
 							className="bp-chip"
+							draggable
+							onDragStart={ ( event ) => {
+								event.dataTransfer.effectAllowed = 'copy';
+								event.dataTransfer.setData( 'text/plain', String( value ).trim() );
+							} }
 							onClick={ () => onInsert( String( value ).trim() ) }
-							title={ String( value ).slice( 0, 140 ) }
+							title={ `Click or drag to insert: ${ String( value ).slice( 0, 140 ) }` }
+							aria-label={ `Insert or drag ${ label } into the caption` }
 						>
 							{ label }
 						</button>

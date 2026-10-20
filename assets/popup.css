@@ -104,6 +104,28 @@ html {
 	font-size: 14px;
 }
 
+.bp-app-home {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--bp-stone-800);
+	cursor: pointer;
+}
+
+.bp-app-home:hover,
+.bp-app-home:focus-visible {
+	color: var(--bp-stone-800);
+}
+
+.bp-app-home:focus-visible {
+	outline: 2px solid var(--bp-accent-300);
+	outline-offset: 3px;
+	border-radius: 4px;
+}
+
 .bp-app-section {
 	font-size: 12px;
 	color: var(--bp-stone-500);
@@ -156,7 +178,7 @@ html {
 
 .bp-menu-item.is-active {
 	color: var(--bp-accent-500);
-	font-weight: 600;
+	font-weight: 400;
 }
 
 .bp-menu-item.is-danger {
@@ -172,6 +194,11 @@ html {
 	cursor: default;
 }
 
+.bp-cs-item:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 /* A kebab on the last card would otherwise open past the popup's bottom. */
 .bp-menu-pop[data-align='right'] {
 	right: 0;
@@ -180,6 +207,232 @@ html {
 .bp-app-body {
 	padding: 14px;
 	flex: 1;
+}
+
+/* Publish feedback belongs at the top of Compose, where the popup returns as
+ * soon as a submission starts. Keep the wrapper out of the layout entirely
+ * while idle so it does not introduce a phantom 16px composer gap. */
+.bp-submit-status:empty {
+	display: none;
+}
+
+.bp-submit-status,
+.bp-publish-status {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bp-submit-status .bp-alert,
+.bp-publish-status .bp-alert {
+	margin-bottom: 0;
+}
+
+.bp-status-preview > .bp-alert {
+	margin-bottom: 0;
+}
+
+/* Content compatibility. The popup is narrow, so post types stay in compact
+ * platform rows and the larger platform-specific forms live in accordions. */
+.bp-content-types,
+.bp-posttype-list,
+.bp-platform-options,
+.bp-option-stack,
+.bp-option-body,
+.bp-thread-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.bp-format-switch {
+	display: inline-flex;
+	align-self: flex-start;
+	padding: 3px;
+	border-radius: 9px;
+	background: var(--bp-stone-100);
+}
+
+.bp-format-switch button {
+	height: 30px;
+	padding: 0 14px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--bp-stone-600);
+	font: inherit;
+	font-size: var(--bp-text-sm);
+	cursor: pointer;
+}
+
+.bp-format-switch button.is-active {
+	background: var(--bp-surface-main);
+	color: var(--bp-stone-900);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.bp-posttype-row {
+	display: grid;
+	grid-template-columns: minmax(105px, 0.8fr) minmax(0, 1.2fr);
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: var(--bp-stone-50);
+}
+
+.bp-posttype-platform {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	min-width: 0;
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-medium);
+}
+
+.bp-posttype-row .bp-override-select { height: 32px; }
+
+.bp-option-section {
+	border-radius: 12px;
+	background: var(--bp-stone-50);
+	overflow: hidden;
+}
+
+.bp-option-section > summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	color: var(--bp-stone-700);
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-semibold);
+	cursor: pointer;
+	list-style: none;
+}
+
+.bp-option-section > summary::-webkit-details-marker { display: none; }
+.bp-option-chevron {
+	width: 16px;
+	height: 16px;
+	margin-left: auto;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	color: var(--bp-stone-500);
+	transition: transform 120ms ease;
+}
+.bp-option-section[open] .bp-option-chevron { transform: rotate(180deg); }
+
+.bp-option-body {
+	padding: 2px 12px 12px;
+}
+
+.bp-option-field {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.bp-option-label {
+	color: var(--bp-stone-500);
+	font-size: var(--bp-text-xs);
+	font-weight: var(--bp-weight-medium);
+}
+
+.bp-option-input { height: 36px; border-radius: 10px; font-size: var(--bp-text-sm); }
+.bp-option-textarea { min-height: 62px; }
+
+.bp-option-check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--bp-stone-700);
+	font-size: var(--bp-text-sm);
+	cursor: pointer;
+}
+
+.bp-option-check input { accent-color: var(--bp-accent-600); }
+.bp-option-check:has(input:disabled) { opacity: 0.5; cursor: default; }
+.bp-option-indent { display: flex; flex-direction: column; gap: 8px; margin-left: 22px; }
+.bp-option-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bp-option-errors { display: flex; flex-direction: column; gap: 4px; margin-top: -8px; }
+.bp-option-errors .bp-error-text,
+.bp-content-types > .bp-error-text,
+.bp-option-body > .bp-error-text {
+	margin-top: 0;
+}
+
+.bp-option-results {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	z-index: 30;
+	max-height: 150px;
+	padding: 4px;
+	border: 1px solid var(--bp-stone-200);
+	border-radius: 9px;
+	background: var(--bp-surface-main);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	overflow-y: auto;
+}
+
+.bp-option-results button { width: 100%; padding: 7px 8px; border: 0; border-radius: 6px; background: none; text-align: left; cursor: pointer; }
+.bp-option-results button:hover { background: var(--bp-stone-100); }
+
+.bp-thread-part {
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+	padding: 10px;
+	border-radius: 12px;
+	background: var(--bp-stone-50);
+}
+
+.bp-thread-head { display: flex; align-items: center; justify-content: space-between; color: var(--bp-stone-600); font-size: var(--bp-text-xs); font-weight: var(--bp-weight-semibold); }
+.bp-thread-part .bp-textarea { min-height: 80px; }
+.bp-thread-over { color: var(--bp-error-text); }
+
+.bp-stale-draft {
+	display: inline-flex;
+	align-items: baseline;
+	align-self: flex-end;
+	gap: 4px;
+	/* .bp-composer has a 16px gap; -12px leaves exactly 4px to the OG card. */
+	margin-bottom: -12px;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	color: var(--bp-stone-600);
+	font-size: var(--bp-text-xs);
+	line-height: 1.45;
+}
+
+.bp-stale-draft-action {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--bp-accent-600);
+	font: inherit;
+	font-weight: 400;
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	text-decoration-thickness: 1px;
+}
+
+.bp-stale-draft-action:hover,
+.bp-stale-draft-action:focus-visible {
+	color: var(--bp-accent-700);
+}
+
+/* Match caption → override to the override dropdown → custom textarea rhythm. */
+.bp-field + .bp-override-field {
+	margin-top: -8px;
 }
 
 /*
@@ -203,7 +456,26 @@ html {
 	border-top: 1px solid var(--bp-stone-200);
 }
 
-/* Page card — the tab you're on, with one-tap inserts. */
+/* Page card — the tab you're on, with click and drag inserts. */
+.bp-compose-fields { display: flex; flex-direction: column; gap: 16px; }
+.bp-actionbar > .bp-btn-primary { background: var(--bp-accent-500); color: #fff; }
+.bp-actionbar > .bp-btn-primary:hover { background: var(--bp-accent-600); }
+.bp-publish-control { position: relative; }
+.bp-publish-control > .bp-publish-state { height: 40px; padding: 0 12px 0 18px; gap: 8px; border-radius: 20px; background: #171717; color: #fff; }
+.bp-publish-control > .bp-publish-state:hover { background: #262626; transform: none; }
+.bp-publish-control > .bp-publish-state-icon { padding-left: 12px; }
+.bp-publish-state > svg, .bp-publish-state .bp-spinner { box-sizing: border-box; width: 16px; height: 16px; flex: 0 0 16px; margin: 0; }
+.bp-publish-state .bp-spinner { border-color: #ffffff55; border-top-color: white; }
+.bp-publish-results-anchor { position: absolute; right: 0; bottom: 100%; padding-bottom: 8px; width: 290px; max-width: calc(100vw - 32px); z-index: 100; }
+.bp-publish-results { padding: 8px; background: var(--bp-surface-main); border: 1px solid var(--bp-stone-200); border-radius: 20px; box-shadow: 0 8px 32px #29252418; display: flex; flex-direction: column; gap: 8px; max-height: min(420px, calc(100vh - 100px)); overflow-y: auto; }
+.bp-publish-results .bp-status { padding: 8px; }
+.bp-publish-results .bp-status-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.bp-publish-results .bp-status-row > .bp-badge { justify-self: end; }
+.bp-publish-results .bp-status-row > .bp-error-text { grid-column: 1 / -1; }
+.bp-publish-results > .bp-btn { width: 100%; border-radius: 12px; justify-content: center; }
+.bp-publish-results .bp-publish-done { background: var(--bp-stone-100); color: var(--bp-stone-800); border-color: transparent; }
+.bp-publish-results .bp-publish-done:hover { background: var(--bp-stone-200); }
+
 .bp-pagecard {
 	position: relative;
 	display: flex;
@@ -226,13 +498,15 @@ html {
 	padding: 0;
 	border: 0;
 	border-radius: 50%;
-	background: var(--bp-surface-main);
-	color: var(--bp-stone-500);
+	background: transparent;
+	color: var(--bp-stone-600);
 	cursor: pointer;
 }
 
-.bp-pagecard-dismiss:hover {
-	color: var(--bp-stone-800);
+.bp-pagecard-dismiss:hover,
+.bp-pagecard-dismiss:focus-visible {
+	background: var(--bp-accent-50);
+	color: var(--bp-accent-700);
 }
 
 .bp-pagecard-main {
@@ -301,6 +575,190 @@ html {
 	margin-right: 2px;
 }
 
+.bp-pagecard-actions .bp-chip {
+	cursor: grab;
+}
+
+.bp-pagecard-actions .bp-chip:active {
+	cursor: grabbing;
+}
+
+/* Media tiles → page-image action uses the same tight 4px relationship. */
+.bp-page-image-link {
+	padding-top: 4px;
+}
+
+/* Feedback belongs to the same compact media-control group. Neutralize the
+ * generic alert's 16px bottom margin and use the established picker → action
+ * spacing on its top edge. */
+.bp-media-field > .bp-alert {
+	margin: 4px 0 0;
+}
+
+.bp-media-field > .bp-loading {
+	padding: 4px 0 0;
+}
+
+/* A compact counterpart to the channel selector: one even border encloses
+ * the label and chevron, so the arrow has the same breathing room on every
+ * platform instead of inheriting a browser-specific select affordance. */
+.bp-override-select-wrap {
+	position: relative;
+	width: 100%;
+}
+
+.bp-override-select {
+	width: 100%;
+	height: 36px;
+	padding: 0 38px 0 12px;
+	appearance: none;
+	border: 1px solid var(--bp-stone-200);
+	border-radius: var(--bp-radius-lg);
+	background: var(--bp-surface-main);
+	color: var(--bp-stone-700);
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-medium);
+	cursor: pointer;
+}
+
+.bp-override-select:focus {
+	outline: none;
+	border-color: var(--bp-accent-400);
+	box-shadow: 0 0 0 3px var(--bp-accent-50);
+}
+
+.bp-override-chevron {
+	position: absolute;
+	top: 50%;
+	right: 12px;
+	width: 16px;
+	height: 16px;
+	transform: translateY(-50%);
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	color: var(--bp-stone-500);
+	pointer-events: none;
+}
+
+/* The browser owns native date-input popovers, including their blue accent.
+ * This compact in-extension calendar keeps scheduling on the BulkPublish
+ * orange scale while preserving the same local datetime value for the API. */
+.bp-schedule-picker {
+	margin-top: 8px;
+	padding: 8px;
+	border: 1px solid var(--bp-stone-200);
+	border-radius: var(--bp-radius-lg);
+	background: var(--bp-surface-main);
+}
+
+.bp-calendar-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	box-sizing: border-box;
+	height: 41px;
+	margin: -8px -8px 4px;
+	padding: 0 8px;
+	border-bottom: 1px solid var(--bp-stone-150);
+}
+
+.bp-calendar-month {
+	font-size: var(--bp-text-sm);
+	font-weight: var(--bp-weight-semibold);
+	color: var(--bp-stone-800);
+}
+
+.bp-calendar-nav {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--bp-stone-600);
+	cursor: pointer;
+}
+
+.bp-calendar-nav:hover { background: var(--bp-accent-50); color: var(--bp-accent-700); }
+
+.bp-calendar-nav-icon {
+	width: 16px;
+	height: 16px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.bp-calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 0;
+	margin: 0 -8px -8px;
+}
+
+.bp-calendar-weekday {
+	padding: 12px 0 2px;
+	color: var(--bp-stone-400);
+	font-size: 10px;
+	font-weight: var(--bp-weight-semibold);
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.bp-calendar-day {
+	display: grid;
+	place-items: center;
+	justify-self: center;
+	width: 75%;
+	aspect-ratio: 1;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--bp-stone-700);
+	font-family: var(--bp-font-body);
+	font-size: var(--bp-text-xs);
+	cursor: pointer;
+}
+
+.bp-calendar-day:hover { background: var(--bp-accent-50); color: var(--bp-accent-700); }
+.bp-calendar-day[data-current-month='false'] { color: var(--bp-stone-300); }
+.bp-calendar-day[data-today='true'] { box-shadow: inset 0 0 0 1px var(--bp-accent-400); }
+.bp-calendar-day[data-selected='true'] { background: var(--bp-accent-600); color: #fff; box-shadow: none; }
+.bp-calendar-day:focus-visible { outline: 2px solid var(--bp-accent-400); outline-offset: 1px; }
+
+.bp-schedule-time {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 8px -8px 0;
+	padding: 8px 8px 0;
+	border-top: 1px solid var(--bp-stone-150);
+	color: var(--bp-stone-600);
+	font-size: var(--bp-text-sm);
+}
+
+.bp-schedule-time input {
+	height: 32px;
+	padding: 0 8px;
+	border: 1px solid var(--bp-stone-200);
+	border-radius: 6px;
+	background: var(--bp-surface-main);
+	color: var(--bp-stone-800);
+	font-family: var(--bp-font-body);
+}
+
+.bp-schedule-time input:focus { outline: none; border-color: var(--bp-accent-400); box-shadow: 0 0 0 3px var(--bp-accent-50); }
+
 /* Segmented control (link-tracking tri-state) */
 .bp-segmented {
 	display: inline-flex;
@@ -338,7 +796,8 @@ html {
 /* Recent posts — one compact row per post, actions behind the kebab. */
 .bp-post-card {
 	border: 1px solid var(--bp-stone-200);
-	border-radius: 10px;
+	/* 18 outer − 10 inset = the thumbnail/icon's 8px inner radius. */
+	border-radius: 18px;
 	padding: 10px;
 	display: flex;
 	flex-direction: column;
@@ -379,6 +838,36 @@ html {
 	width: 100%;
 	height: 100%;
 	color: var(--bp-stone-500);
+}
+
+.bp-post-thumb-play,
+.bp-media-play {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.62);
+	color: #fff;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+
+.bp-post-thumb-play svg {
+	width: 11px;
+	height: 11px;
+	margin-left: 1px;
+}
+
+.bp-media-play {
+	width: 28px;
+	height: 28px;
+	font-size: 11px;
+	padding-left: 2px;
 }
 
 /* "+2" when a post carries more files than the one thumbnail shows. */
@@ -436,26 +925,16 @@ html {
 	padding-top: 8px;
 }
 
-/* Page-image grabber */
-.bp-page-images {
+.bp-post-schedule {
+	border-top: 1px solid var(--bp-stone-150);
+	padding-top: 0;
+}
+
+.bp-post-schedule-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
 	margin-top: 8px;
-	border: 1px solid var(--bp-stone-200);
-	border-radius: 10px;
-	padding: 8px;
-}
-
-.bp-media-pick {
-	cursor: pointer;
-	border: 0;
-	padding: 0;
-	background: none;
-	position: relative;
-}
-
-.bp-media-pick .bp-spinner {
-	position: absolute;
-	inset: 0;
-	margin: auto;
 }
 
 /*

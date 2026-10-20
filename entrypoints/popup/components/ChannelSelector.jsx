@@ -27,9 +27,14 @@ const IconPlus = () => (
 
 const IconChevron = () => (
 	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-		<path d="M6 9l6 6 6-6" />
+		<path d="m6 9 6 6 6-6" />
 	</svg>
 );
+
+const isSelectable = ( channel ) =>
+	channel.platformAvailable !== false &&
+	! channel.needsReconnect &&
+	channel.tokenStatus !== 'expired';
 
 export function ChannelSelector( { channels, sets, selected, onToggle, onApplySet } ) {
 	const [ open, setOpen ] = useState( false );
@@ -39,7 +44,17 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 		if ( ! open ) {
 			return;
 		}
-		const onDown = ( e ) => {
+		const onPointerDown = ( e ) => {
+			const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+			if (
+				rootRef.current &&
+				! path.includes( rootRef.current ) &&
+				! rootRef.current.contains( e.target )
+			) {
+				setOpen( false );
+			}
+		};
+		const onFocus = ( e ) => {
 			if ( rootRef.current && ! rootRef.current.contains( e.target ) ) {
 				setOpen( false );
 			}
@@ -49,10 +64,14 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 				setOpen( false );
 			}
 		};
-		document.addEventListener( 'mousedown', onDown );
+		// Capture phase makes dismissal reliable even when another extension
+		// control stops propagation during its own pointer handling.
+		document.addEventListener( 'pointerdown', onPointerDown, true );
+		document.addEventListener( 'focusin', onFocus, true );
 		document.addEventListener( 'keydown', onKey );
 		return () => {
-			document.removeEventListener( 'mousedown', onDown );
+			document.removeEventListener( 'pointerdown', onPointerDown, true );
+			document.removeEventListener( 'focusin', onFocus, true );
 			document.removeEventListener( 'keydown', onKey );
 		};
 	}, [ open ] );
@@ -73,7 +92,7 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 	// A set is a shortcut, not a target: only the channels it names that are
 	// actually connected can be selected.
 	const usableSets = ( sets || [] ).filter( ( s ) =>
-		( s.channelIds || [] ).some( ( id ) => channels.some( ( ch ) => ch.id === id ) )
+		( s.channelIds || [] ).some( ( id ) => channels.some( ( ch ) => ch.id === id && isSelectable( ch ) ) )
 	);
 
 	return (
@@ -128,7 +147,7 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 							<div className="bp-cs-sets-title">Channel sets</div>
 							{ usableSets.map( ( s ) => {
 								const ids = ( s.channelIds || [] ).filter( ( id ) =>
-									channels.some( ( ch ) => ch.id === id )
+									channels.some( ( ch ) => ch.id === id && isSelectable( ch ) )
 								);
 								return (
 									<button
@@ -151,13 +170,18 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 					<div className="bp-cs-list">
 						{ channels.map( ( ch ) => {
 							const isOn = selectedIds.includes( ch.id );
-							const needsReconnect = ch.tokenStatus && ch.tokenStatus !== 'valid';
+							const needsReconnect = ch.needsReconnect || ch.tokenStatus === 'expired';
+							const expiringSoon = ch.tokenStatus === 'expiring_soon';
+							const unavailable = ch.platformAvailable === false;
+							const disabled = needsReconnect || unavailable;
 							return (
 								<button
 									type="button"
 									key={ ch.id }
 									className="bp-cs-item"
 									aria-pressed={ isOn }
+									disabled={ disabled && ! isOn }
+									title={ unavailable ? ch.platformMessage || 'Temporarily unavailable' : needsReconnect ? 'Reconnect this channel in BulkPublish' : undefined }
 									onClick={ () => onToggle( ch.id ) }
 								>
 									<span className="bp-cs-item-left">
@@ -166,9 +190,13 @@ export function ChannelSelector( { channels, sets, selected, onToggle, onApplySe
 											<span className="bp-cs-item-name">
 												{ ch.accountName || platformLabel( ch.platform ) }
 											</span>
-											<span className="bp-cs-item-sub">
-												{ needsReconnect
+										<span className="bp-cs-item-sub">
+											{ unavailable
+												? ch.platformMessage || 'Temporarily unavailable'
+												: needsReconnect
 													? 'May need reconnecting'
+													: expiringSoon
+														? 'Connection expires soon'
 													: platformLabel( ch.platform ) }
 											</span>
 										</span>

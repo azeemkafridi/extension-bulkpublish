@@ -48,6 +48,28 @@ test( 'an unfocused field appends instead of prepending', () => {
 	);
 } );
 
+test( 'a saved selection survives focus moving to an insert chip', () => {
+	assert.equal(
+		run(
+			field( { start: 0, focused: false } ),
+			'INSERT',
+			'hello world',
+			{ selection: { start: 6, end: 11 } }
+		),
+		'hello INSERT'
+	);
+} );
+
+test( 'reports the caret after an insertion', () => {
+	let nextSelection;
+	run( field( { start: 2 } ), 'X', 'abcd', {
+		onSelectionChange: ( selection ) => {
+			nextSelection = selection;
+		},
+	} );
+	assert.deepEqual( nextSelection, { start: 3, end: 3 } );
+} );
+
 test( 'separate: pads both sides only where needed', () => {
 	// Mid-text insertion gets a gap on each side.
 	assert.equal(

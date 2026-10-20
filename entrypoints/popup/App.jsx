@@ -6,23 +6,31 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BulkPublishClient } from '@/lib/api.js';
 import { buildPrefill } from '@/lib/prefill.js';
-import { shouldRestore } from '@/lib/draft.js';
+import { composerStateFromPost } from '@/lib/post-state.js';
+import {
+	draftPageContext,
+	isDraftFromAnotherPage,
+	shouldRestore,
+} from '@/lib/draft.js';
 import {
 	apiKeyItem,
 	settingsItem,
 	draftItem,
 	pendingPrefillItem,
+	publishingItem,
 } from '@/lib/storage.js';
 import { getPageContext } from './page.js';
 import { Spinner, Menu, MenuItem } from './components/ui.jsx';
 import { Composer } from './components/Composer.jsx';
 import { RecentPosts } from './components/RecentPosts.jsx';
 import { Settings } from './components/Settings.jsx';
+import { StatusPreview } from './components/StatusPreview.jsx';
 
 const TABS = [
 	[ 'compose', 'Compose' ],
 	[ 'recent', 'Recent' ],
 	[ 'settings', 'Settings' ],
+	...( import.meta.env.DEV ? [ [ 'status-preview', 'Status preview' ] ] : [] ),
 ];
 
 const IconMenu = () => (
@@ -43,11 +51,21 @@ const EMPTY_STATE = {
 	perChannel: {},
 	mediaIds: [],
 	mediaItems: {},
+	postFormat: 'post',
+	postTypeOverrides: {},
+	platformSpecific: {},
+	threadParts: [ { content: '', mediaFileIds: [] }, { content: '', mediaFileIds: [] } ],
+	firstComment: '',
 	requestApproval: false,
 	scheduleEnabled: false,
 	scheduleAt: '',
 	bpPostId: null,
+	editingPostId: null,
+	protectMedia: false,
+	linkTracking: undefined,
 };
+
+const EMPTY_PAGE = { title: '', url: '', selectionText: '' };
 
 export default function App() {
 	const [ ready, setReady ] = useState( false );
@@ -55,15 +73,19 @@ export default function App() {
 	const [ settings, setSettings ] = useState( { linkTrackingDefault: 'default' } );
 	const [ tab, setTab ] = useState( 'compose' );
 	const [ state, setState ] = useState( EMPTY_STATE );
-	const [ pageContext, setPageContext ] = useState( { title: '', url: '', selectionText: '' } );
+	const [ pageContext, setPageContext ] = useState( EMPTY_PAGE );
+	const [ currentPageContext, setCurrentPageContext ] = useState( EMPTY_PAGE );
+	const [ staleDraft, setStaleDraft ] = useState( false );
+	const [ composerRevision, setComposerRevision ] = useState( 0 );
 	useEffect( () => {
 		( async () => {
-			const [ key, stored, draft, pending, page ] = await Promise.all( [
+			const [ key, stored, draft, pending, page, run ] = await Promise.all( [
 				apiKeyItem.getValue(),
 				settingsItem.getValue(),
 				draftItem.getValue(),
 				pendingPrefillItem.getValue(),
 				getPageContext(),
+				publishingItem.getValue(),
 			] );
 			setApiKey( key );
 			setSettings( stored );
@@ -71,7 +93,12 @@ export default function App() {
 				setTab( 'settings' );
 			}
 
-			if ( pending ) {
+			if ( run ) {
+				setCurrentPageContext( page );
+				setPageContext( run.draft.pageContext || page );
+				setState( { ...EMPTY_STATE, ...run.draft, bpPostId: run.postId, editingPostId: null } );
+				if ( pending ) await pendingPrefillItem.removeValue();
+			} else if ( pending ) {
 				// Context-menu payload: consume it once, and prefer its page
 				// (the tab that was right-clicked) over whatever is active now.
 				await pendingPrefillItem.removeValue();
@@ -90,6 +117,7 @@ export default function App() {
 					// you want, so it outranks the page's og:image on the card.
 					...( pending.imageUrl ? { image: pending.imageUrl } : {} ),
 				};
+				setCurrentPageContext( context );
 				setPageContext( context );
 				const prefill = buildPrefill( context );
 				setState( {
@@ -100,7 +128,7 @@ export default function App() {
 					pageUrl: context.url,
 				} );
 			} else {
-				setPageContext( page );
+				setCurrentPageContext( page );
 				const prefill = buildPrefill( page );
 				const fresh = () => ( {
 					...EMPTY_STATE,
@@ -113,11 +141,11 @@ export default function App() {
 					prefillCaption: prefill.caption,
 					pageUrl: page.url,
 				} );
-				setState(
-					shouldRestore( draft, page.url )
-						? { ...EMPTY_STATE, ...draft }
-						: fresh()
-				);
+				const restore = shouldRestore( draft, page.url );
+				const fromAnotherPage = restore && isDraftFromAnotherPage( draft, page.url );
+				setPageContext( fromAnotherPage ? draftPageContext( draft ) : page );
+				setState( restore ? { ...EMPTY_STATE, ...draft } : fresh() );
+				setStaleDraft( fromAnotherPage );
 			}
 			setReady( true );
 		} )();
@@ -132,19 +160,18 @@ export default function App() {
 		if ( ! ready ) {
 			return;
 		}
-		// Once a post has gone out, its draft has served its purpose — keeping
-		// it would greet the next popup with an already-published caption and
-		// invite sending it twice. The in-session view keeps showing status.
-		if ( state.published ) {
-			draftItem.removeValue();
-			return;
-		}
-		draftItem.setValue( {
+		// Publishing has a separate durable journal, restored before this draft.
+			draftItem.setValue( {
 			caption: state.caption,
 			channels: state.channels,
 			perChannel: state.perChannel,
 			mediaIds: state.mediaIds,
 			mediaItems: state.mediaItems,
+			postFormat: state.postFormat,
+			postTypeOverrides: state.postTypeOverrides,
+			platformSpecific: state.platformSpecific,
+			threadParts: state.threadParts,
+			firstComment: state.firstComment,
 			requestApproval: state.requestApproval,
 			scheduleEnabled: state.scheduleEnabled,
 			scheduleAt: state.scheduleAt,
@@ -152,19 +179,70 @@ export default function App() {
 			// Baseline for isUntouchedPrefill on the next open.
 			prefillCaption: state.prefillCaption,
 			pageUrl: state.pageUrl,
+			// Keep the OG/title/image snapshot attached to the draft it describes;
+			// the active tab may be a completely different page next time.
+			pageContext,
 			// Kept so a reopened draft still knows its media belongs to a
 			// created post and must not be deleted on detach.
 			bpPostId: state.bpPostId,
+			editingPostId: state.editingPostId,
+			protectMedia: state.protectMedia,
+			linkTracking: state.linkTracking,
 		} );
 		if ( ( state.channels || [] ).length ) {
 			settingsItem.setValue( { ...settings, lastChannelIds: state.channels } );
 		}
-	}, [ ready, state ] );
+	}, [ ready, state, pageContext ] );
 
 	const client = useMemo(
 		() => ( apiKey ? new BulkPublishClient( { apiKey } ) : null ),
 		[ apiKey ]
 	);
+
+	const startFreshFromPage = async () => {
+		const endedRun = await publishingItem.getValue().catch( () => null );
+		await publishingItem.removeValue();
+		// Media uploaded by an abandoned, not-yet-created post is safe to reclaim.
+		// Once bpPostId exists, the server post may still reference it. So may a
+		// submission whose outcome was never confirmed (the response was lost):
+		// the post can exist with no id on our side, and deleting its files left
+		// a live or scheduled post pointing at nothing.
+		const outcomeUnknown = !! endedRun && [ 'uncertain', 'submitting' ].includes( endedRun.phase );
+		if ( client && ! state.bpPostId && ! state.protectMedia && ! outcomeUnknown ) {
+			const mediaIds = [ ...new Set( [
+				...( state.mediaIds || [] ),
+				...( state.threadParts || [] ).flatMap( ( part ) => part.mediaFileIds || [] ),
+			] ) ];
+			Promise.all(
+				mediaIds.map( ( id ) =>
+					client.deleteMedia( id ).catch( () => {} )
+				)
+			).catch( () => {} );
+		}
+		await draftItem.removeValue();
+		const prefill = buildPrefill( currentPageContext );
+		setPageContext( currentPageContext );
+		setState( {
+			...EMPTY_STATE,
+			channels: ( state.channels && state.channels.length
+				? state.channels
+				: settings.lastChannelIds ) || [],
+			caption: prefill.caption,
+			prefillCaption: prefill.caption,
+			pageUrl: currentPageContext.url,
+		} );
+		setStaleDraft( false );
+		setComposerRevision( ( value ) => value + 1 );
+		setTab( 'compose' );
+	};
+
+	const openRecentPost = ( post, duplicate = false ) => {
+		setPageContext( EMPTY_PAGE );
+		setState( { ...EMPTY_STATE, ...composerStateFromPost( post, { duplicate } ) } );
+		setStaleDraft( false );
+		setComposerRevision( ( value ) => value + 1 );
+		setTab( 'compose' );
+	};
 
 	if ( ! ready ) {
 		return <Spinner label="Loading…" />;
@@ -173,8 +251,16 @@ export default function App() {
 	return (
 		<div className="bp-app">
 			<header className="bp-app-head">
-				<img src="/icon/48.png" alt="" width="20" height="20" />
-				<span className="bp-app-title">BulkPublish</span>
+				<button
+					type="button"
+					className="bp-app-home"
+					onClick={ () => setTab( 'compose' ) }
+					aria-label="Go to Compose"
+					title="Compose"
+				>
+					<img src="/icon/48.png" alt="" width="20" height="20" />
+					<span className="bp-app-title">BulkPublish</span>
+				</button>
 				{ /* The tabs moved into this menu, so the section name has to be
 				     stated here — otherwise nothing on screen says where you are. */ }
 				<span className="bp-app-section">
@@ -197,11 +283,14 @@ export default function App() {
 				{ tab === 'compose' &&
 					( client ? (
 						<Composer
+							key={ composerRevision }
 							client={ client }
 							state={ state }
 							setState={ setState }
 							pageContext={ pageContext }
 							settings={ settings }
+							staleDraft={ staleDraft }
+							onStartFresh={ startFreshFromPage }
 						/>
 					) : (
 						<p className="bp-muted">
@@ -210,7 +299,11 @@ export default function App() {
 					) ) }
 				{ tab === 'recent' &&
 					( client ? (
-						<RecentPosts client={ client } />
+						<RecentPosts
+							client={ client }
+							onEdit={ ( post ) => openRecentPost( post, false ) }
+							onDuplicate={ ( post ) => openRecentPost( post, true ) }
+						/>
 					) : (
 						<p className="bp-muted">
 							Add your API key in Settings to see your posts.
@@ -236,9 +329,12 @@ export default function App() {
 							await draftItem.removeValue();
 							setApiKey( '' );
 							setState( EMPTY_STATE );
+							setStaleDraft( false );
+							setComposerRevision( ( value ) => value + 1 );
 						} }
 					/>
 				) }
+				{ import.meta.env.DEV && tab === 'status-preview' && <StatusPreview /> }
 			</main>
 		</div>
 	);

@@ -1,7 +1,7 @@
 {
   "name": "extension-bulkpublish",
   "version": "0.2.0",
-  "description": "Browser extension for BulkPublish — compose, schedule, and publish to 15 social media platforms from any page.",
+  "description": "Compose, schedule, and publish posts to 15+ social media platforms with BulkPublish.",
   "type": "module",
   "private": true,
   "keywords": [
@@ -20,9 +20,10 @@
     "url": "https://bulkpublish.com"
   },
   "scripts": {
-    "dev": "wxt",
-    "dev:firefox": "wxt -b firefox",
-    "build": "wxt build",
+		"dev": "wxt",
+		"dev:firefox": "wxt -b firefox",
+		"build:preview": "wxt build --mode development",
+		"build": "wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",

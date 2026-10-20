@@ -57,6 +57,58 @@ test( 'requestApproval only sent when true', () => {
 	);
 } );
 
+test( 'platform post types and options are sent to the API', () => {
+	const body = buildPostBody( {
+		content: 'hello',
+		channelIds: [ 4 ],
+		postFormat: 'post',
+		postTypeOverrides: { pinterest: 'video_pin' },
+		platformSpecific: { pinterest: { title: 'A pin', 4: { boardId: 'board-1' } } },
+	} );
+	assert.equal( body.postFormat, 'post' );
+	assert.deepEqual( body.postTypeOverrides, { pinterest: 'video_pin' } );
+	assert.deepEqual( body.platformSpecific, { pinterest: { title: 'A pin', 4: { boardId: 'board-1' } } } );
+} );
+
+test( 'thread payload carries its parts', () => {
+	const parts = [
+		{ content: 'one', mediaFileIds: [] },
+		{ content: 'two', mediaFileIds: [ 8 ] },
+	];
+	const body = buildPostBody( {
+		content: 'one',
+		channelIds: [ 4 ],
+		postFormat: 'thread',
+		postTypeOverrides: { x: 'thread' },
+		threadParts: parts,
+	} );
+	assert.deepEqual( body.threadParts, parts );
+} );
+
+test( 'update payload explicitly clears values removed in the editor', () => {
+	const body = buildPostBody( {
+		content: 'edited',
+		channelEntries: [ { channelId: 4, platform: 'instagram' } ],
+		mediaIds: [],
+		perPlatform: {},
+		platformSpecific: {},
+		postTypeOverrides: {},
+		requestApproval: false,
+		linkTracking: 'default',
+		postFormat: 'post',
+		forUpdate: true,
+	} );
+	assert.deepEqual( body.channels, [ { channelId: 4, platform: 'instagram' } ] );
+	assert.deepEqual( body.mediaFiles, [] );
+	assert.deepEqual( body.platformContent, {} );
+	assert.deepEqual( body.platformSpecific, {} );
+	assert.deepEqual( body.postTypeOverrides, {} );
+	assert.equal( body.requestApproval, false );
+	assert.equal( body.linkTrackingOverride, null );
+	assert.equal( body.threadParts, null );
+	assert.equal( body.scheduledAt, null );
+} );
+
 test( 'hasLink checks caption and overrides', () => {
 	assert.ok( hasLink( 'see https://example.com' ) );
 	assert.ok( hasLink( 'plain', { x: 'go https://example.com' } ) );

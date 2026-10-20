@@ -601,7 +601,7 @@
 	position: relative; width: 96px; height: 96px; overflow: hidden;
 	border: none; border-radius: var(--bp-radius-md); background: var(--bp-stone-100);
 }
-.bp-media-item img { width: 100%; height: 100%; object-fit: cover; }
+.bp-media-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .bp-media-video {
 	width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
 	background: var(--bp-stone-100); color: var(--bp-stone-500); font-size: var(--bp-text-xs);

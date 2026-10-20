@@ -36,6 +36,19 @@ test( 'sends bearer auth and JSON content type', async () => {
 	assert.equal( init.body, JSON.stringify( { content: 'hi' } ) );
 } );
 
+test( 'requests identify the extension and have distinct correlation IDs', async () => {
+	const {client,calls}=makeClient(()=>jsonResponse({}));
+	await client.getChannels();await client.getChannels();
+	assert.equal(calls[0].init.headers['X-BulkPublish-Client'],'extension');
+	assert.ok(calls[0].init.headers['X-BulkPublish-Version']);
+	assert.notEqual(calls[0].init.headers['X-Request-ID'],calls[1].init.headers['X-Request-ID']);
+} );
+
+test( 'API errors retain the server correlation ID for diagnosis', async () => {
+	const {client}=makeClient(()=>({...jsonResponse({error:'Failed'},500),headers:{get:()=> 'server-request-123'}}));
+	await assert.rejects(client.getChannels(),error=>error.requestId==='server-request-123');
+} );
+
 test( 'trailing slash on baseUrl is trimmed', async () => {
 	const calls = [];
 	const client = new BulkPublishClient( {
@@ -76,6 +89,35 @@ test( 'string-shaped media errors become the message', async () => {
 		assert.equal( e.code, undefined );
 		return true;
 	} );
+} );
+
+test( 'remote media import sends the public URL to the authenticated API', async () => {
+	const { client, calls } = makeClient( () =>
+		jsonResponse( { file: { id: 21, originalUrl: 'https://cdn.example/stored.jpg' } }, 201 )
+	);
+	const result = await client.importMediaUrl( 'https://images.example/page.jpg' );
+	assert.equal( result.file.id, 21 );
+	assert.equal( calls[ 0 ].url, 'https://app.bulkpublish.com/api/media/import' );
+	assert.equal( calls[ 0 ].init.body, JSON.stringify( { url: 'https://images.example/page.jpg' } ) );
+} );
+
+test( 'channel options include lookup query parameters', async () => {
+	const calls = [];
+	const client = new BulkPublishClient( {
+		apiKey: 'bp_test',
+		fetchImpl: async ( url, init ) => {
+			calls.push( { url, init } );
+			return jsonResponse( { items: [] } );
+		},
+	} );
+	await client.getChannelOptions( 42, { q: 'design' } );
+	assert.equal( calls[ 0 ].url, 'https://app.bulkpublish.com/api/channels/42/options?q=design' );
+} );
+
+test( 'capabilities are read from the authenticated channels response', async () => {
+	const expected = { canCreatePosts: true, canPublishPosts: false, canApprovePosts: false };
+	const { client } = makeClient( () => jsonResponse( { channels: [], capabilities: expected } ) );
+	assert.deepEqual( await client.getCapabilities(), expected );
 } );
 
 test( 'network failure surfaces as NETWORK code', async () => {
@@ -119,6 +161,36 @@ test( 'createAndMaybePublish skips publish when approval is pending', async () =
 	assert.equal( calls.length, 1 );
 } );
 
+test( 'approval-required publish converts its existing draft instead of duplicating it', async () => {
+	const { client, calls } = makeClient( ( url, init ) => {
+		if ( url.endsWith( '/api/posts' ) ) {
+			return jsonResponse( { id: 17, status: 'draft', approvalStatus: 'none' }, 201 );
+		}
+		if ( url.endsWith( '/api/posts/17/publish' ) ) {
+			return jsonResponse(
+				{ error: { message: 'Needs approval', code: 'APPROVAL_REQUIRED' } },
+				403
+			);
+		}
+		assert.equal( init.method, 'PUT' );
+		return jsonResponse( { id: 17, status: 'scheduled', approvalStatus: 'pending' } );
+	} );
+	const fallback = {
+		content: 'x',
+		status: 'scheduled',
+		scheduledAt: '2026-09-01T05:02:00.000Z',
+		requestApproval: true,
+	};
+	const post = await client.createAndMaybePublish(
+		{ content: 'x', status: 'draft' },
+		{ publishNow: true, approvalFallback: fallback }
+	);
+	assert.equal( post.approvalStatus, 'pending' );
+	assert.equal( calls.length, 3 );
+	assert.ok( calls[ 2 ].url.endsWith( '/api/posts/17' ) );
+	assert.equal( calls[ 2 ].init.body, JSON.stringify( fallback ) );
+} );
+
 test( 'publish failure after create carries bpPostId for retry', async () => {
 	const { client } = makeClient( ( url ) => {
 		if ( url.endsWith( '/api/posts' ) ) {
@@ -141,6 +213,26 @@ test( 'reject sends reason only when present', async () => {
 	await client.rejectPost( 2 );
 	assert.equal( calls[ 0 ].init.body, JSON.stringify( { reason: 'nope' } ) );
 	assert.equal( calls[ 1 ].init.body, JSON.stringify( {} ) );
+} );
+
+test( 'retry can target one platform result and explicitly republish', async () => {
+	const { client, calls } = makeClient( () => jsonResponse( {} ) );
+	await client.retryPost( 5, { postPlatformId: 12, republish: true } );
+	assert.equal( calls[ 0 ].url, 'https://app.bulkpublish.com/api/posts/5/platforms/12/retry' );
+	assert.equal( calls[ 0 ].init.body, JSON.stringify( { republish: true } ) );
+} );
+
+test( 'updateAndMaybePublish edits the same post before publishing', async () => {
+	const { client, calls } = makeClient( ( url ) =>
+		url.endsWith( '/publish' )
+			? jsonResponse( { id: 31, status: 'published' } )
+			: jsonResponse( { id: 31, status: 'draft', approvalStatus: 'none' } )
+	);
+	const post = await client.updateAndMaybePublish( 31, { content: 'edited' }, { publishNow: true } );
+	assert.equal( post.status, 'published' );
+	assert.equal( calls.length, 2 );
+	assert.equal( calls[ 0 ].init.method, 'PUT' );
+	assert.ok( calls[ 0 ].url.endsWith( '/api/posts/31' ) );
 } );
 
 test( 'errorMessage handles strings, errors, and nothing', () => {
