@@ -36,4 +36,4 @@ Bump `CURRENT_PROJECT_VERSION` on every upload (and `MARKETING_VERSION` with
   imagery in screenshots. The product name "BulkPublish for Safari" is
   required to match the manifest name (see `wxt.config.ts`).
 - Review notes must include a demo account on a paid plan plus an API key: the
-  Free plan's 30 API requests a day run out within minutes of status polling.
+  Free plan's 10 API requests a day run out within minutes of status polling.
